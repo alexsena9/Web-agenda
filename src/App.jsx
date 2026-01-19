@@ -4,10 +4,15 @@ import Dashboard from "./views/Dashboard";
 import Agenda from "./views/Agenda";
 import Clientes from "./views/Clientes";
 import Configuracion from "./views/Configuracion";
+import Login from "./views/Login"; // Importamos el Login
 import NuevoTurnoModal from "./components/NuevoTurnoModal";
 import "./App.css";
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem("isAuth") === "true";
+  });
+
   const [view, setView] = useState("dashboard");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -15,19 +20,16 @@ function App() {
     const saved = localStorage.getItem("web_agenda_turnos");
     return saved ? JSON.parse(saved) : [];
   });
-
   const [clientes, setClientes] = useState(() => {
     const saved = localStorage.getItem("web_agenda_clientes");
     return saved ? JSON.parse(saved) : [];
   });
-
   const [servicios, setServicios] = useState(() => {
     const saved = localStorage.getItem("web_agenda_servicios");
     return saved
       ? JSON.parse(saved)
       : ["Corte de Cabello", "Barba", "Tratamiento Facial"];
   });
-
   const [horarios, setHorarios] = useState(() => {
     const saved = localStorage.getItem("web_agenda_horarios");
     return saved ? JSON.parse(saved) : { inicio: 9, fin: 18 };
@@ -40,14 +42,22 @@ function App() {
     localStorage.setItem("web_agenda_horarios", JSON.stringify(horarios));
   }, [turnos, clientes, servicios, horarios]);
 
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    sessionStorage.setItem("isAuth", "true");
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem("isAuth");
+  };
+
   const handleAddTurno = (nuevoTurno) => {
     setTurnos((prev) => [...prev, nuevoTurno]);
-
     setClientes((prevClientes) => {
       const existe = prevClientes.find(
         (c) => c.nombre.toLowerCase() === nuevoTurno.cliente.toLowerCase(),
       );
-
       if (existe) {
         return prevClientes.map((c) =>
           c.id === existe.id
@@ -67,6 +77,10 @@ function App() {
       }
     });
   };
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   const renderView = () => {
     switch (view) {
@@ -95,16 +109,11 @@ function App() {
             setClientes={setClientes}
             horarios={horarios}
             setHorarios={setHorarios}
+            onLogout={handleLogout}
           />
         );
       default:
-        return (
-          <Dashboard
-            turnos={turnos}
-            setView={setView}
-            onNewTurn={() => setIsModalOpen(true)}
-          />
-        );
+        return <Dashboard turnos={turnos} setView={setView} />;
     }
   };
 
@@ -115,14 +124,12 @@ function App() {
         setView={setView}
         onNewTurn={() => setIsModalOpen(true)}
       />
-
       <main
         className="flex-grow-1 p-3 p-md-4 p-lg-5 mb-5 mb-lg-0"
         style={{ overflowY: "auto", maxHeight: "100vh" }}
       >
         <div className="container-fluid px-0">{renderView()}</div>
       </main>
-
       <NuevoTurnoModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
