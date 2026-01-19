@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "./layout/Sidebar";
-import Dashboard from "./views/Dashboard";
-import Agenda from "./views/Agenda";
-import Clientes from "./views/Clientes";
-import Configuracion from "./views/Configuracion";
-import Login from "./views/Login";
-import NuevoTurnoModal from "./components/NuevoTurnoModal";
+import Sidebar from "./Layout/Sidebar";
+import Dashboard from "./Views/Dashboard";
+import Agenda from "./Views/Agenda";
+import Clientes from "./Views/Clientes";
+import Configuracion from "./Views/Configuracion";
+import Login from "./Views/Login";
+import NuevoTurnoModal from "./Components/NuevoTurnoModal";
 import "./App.css";
 
 function App() {
