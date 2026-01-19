@@ -4,7 +4,7 @@ import Dashboard from "./views/Dashboard";
 import Agenda from "./views/Agenda";
 import Clientes from "./views/Clientes";
 import Configuracion from "./views/Configuracion";
-import Login from "./views/Login"; // Importamos el Login
+import Login from "./views/Login";
 import NuevoTurnoModal from "./components/NuevoTurnoModal";
 import "./App.css";
 
