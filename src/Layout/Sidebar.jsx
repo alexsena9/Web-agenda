@@ -8,7 +8,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 
-const Sidebar = ({ view, setView }) => {
+const Sidebar = ({ view, setView, onNewTurn }) => {
   const menuItems = [
     { id: "dashboard", name: "Dashboard", icon: <LayoutDashboard size={20} /> },
     { id: "agenda", name: "Mi Agenda", icon: <Calendar size={20} /> },
@@ -18,7 +18,7 @@ const Sidebar = ({ view, setView }) => {
 
   return (
     <div
-      className="d-flex flex-column bg-white border-end vh-100"
+      className="d-flex flex-column bg-white border-end vh-100 shadow-sm"
       style={{ width: "280px", position: "sticky", top: 0 }}
     >
       <div className="p-4">
@@ -29,7 +29,10 @@ const Sidebar = ({ view, setView }) => {
       </div>
 
       <div className="px-3 mb-4">
-        <button className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 shadow-sm">
+        <button
+          onClick={onNewTurn}
+          className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 shadow-sm transition-all"
+        >
           <PlusCircle size={18} />
           <span className="fw-bold">Nuevo Turno</span>
         </button>
@@ -53,7 +56,7 @@ const Sidebar = ({ view, setView }) => {
       </nav>
 
       <div className="p-3 border-top">
-        <button className="btn btn-light w-100 d-flex align-items-center gap-3 text-danger border-0">
+        <button className="btn btn-light w-100 d-flex align-items-center gap-3 text-danger border-0 hover-bg-light transition-all">
           <LogOut size={20} />
           <span className="fw-medium">Cerrar Sesión</span>
         </button>
