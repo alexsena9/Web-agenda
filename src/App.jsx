@@ -9,7 +9,6 @@ import "./App.css";
 
 function App() {
   const [view, setView] = useState("dashboard");
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [turnos, setTurnos] = useState(() => {
@@ -42,7 +41,7 @@ function App() {
   }, [turnos, clientes, servicios, horarios]);
 
   const handleAddTurno = (nuevoTurno) => {
-    setTurnos([...turnos, nuevoTurno]);
+    setTurnos((prev) => [...prev, nuevoTurno]);
 
     setClientes((prevClientes) => {
       const existe = prevClientes.find(
@@ -99,7 +98,13 @@ function App() {
           />
         );
       default:
-        return <Dashboard turnos={turnos} setView={setView} />;
+        return (
+          <Dashboard
+            turnos={turnos}
+            setView={setView}
+            onNewTurn={() => setIsModalOpen(true)}
+          />
+        );
     }
   };
 
@@ -123,6 +128,7 @@ function App() {
         onClose={() => setIsModalOpen(false)}
         onAddTurno={handleAddTurno}
         servicios={servicios}
+        turnos={turnos}
       />
     </div>
   );
