@@ -1,20 +1,18 @@
-import React from "react";
-import {
-  Search,
-  UserPlus,
-  Mail,
-  Phone,
-  Edit2,
-  Trash2,
-  User,
-} from "lucide-react";
+import React, { useState } from "react";
+import { Search, Trash2, User, MessageCircle, Calendar } from "lucide-react";
 
 const Clientes = ({ clientes, setClientes }) => {
+  const [busqueda, setBusqueda] = useState("");
+
   const eliminarCliente = (id) => {
     if (window.confirm("¿Eliminar este cliente borrará su historial?")) {
       setClientes(clientes.filter((c) => c.id !== id));
     }
   };
+
+  const clientesFiltrados = clientes.filter((c) =>
+    c.nombre.toLowerCase().includes(busqueda.toLowerCase()),
+  );
 
   return (
     <div className="view-animate text-start">
@@ -22,7 +20,7 @@ const Clientes = ({ clientes, setClientes }) => {
         <div>
           <h2 className="fw-bold mb-0">Base de Clientes</h2>
           <p className="text-muted">
-            Contactos registrados a través de tus turnos.
+            Gestiona tus contactos y su historial de visitas.
           </p>
         </div>
       </div>
@@ -35,7 +33,9 @@ const Clientes = ({ clientes, setClientes }) => {
           <input
             type="text"
             className="form-control border-0 shadow-none"
-            placeholder="Buscar por nombre..."
+            placeholder="Escribe el nombre del cliente para buscar..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
       </div>
@@ -49,7 +49,7 @@ const Clientes = ({ clientes, setClientes }) => {
                   CLIENTE
                 </th>
                 <th className="py-3 border-0 text-muted small fw-bold text-center">
-                  TURNOS
+                  HISTORIAL
                 </th>
                 <th className="py-3 border-0 text-muted small fw-bold text-end px-4">
                   ACCIONES
@@ -57,8 +57,8 @@ const Clientes = ({ clientes, setClientes }) => {
               </tr>
             </thead>
             <tbody>
-              {clientes.length > 0 ? (
-                clientes.map((cliente) => (
+              {clientesFiltrados.length > 0 ? (
+                clientesFiltrados.map((cliente) => (
                   <tr key={cliente.id}>
                     <td className="px-4 py-3 border-0">
                       <div className="d-flex align-items-center gap-3">
@@ -71,30 +71,44 @@ const Clientes = ({ clientes, setClientes }) => {
                         <div>
                           <p className="mb-0 fw-bold">{cliente.nombre}</p>
                           <small className="text-muted">
-                            Registrado el {cliente.fechaRegistro}
+                            Miembro desde {cliente.fechaRegistro}
                           </small>
                         </div>
                       </div>
                     </td>
                     <td className="py-3 border-0 text-center">
                       <span className="badge bg-light text-primary border border-primary-subtle rounded-pill px-3">
-                        {cliente.cantidadTurnos} servicios
+                        {cliente.cantidadTurnos} turnos
                       </span>
                     </td>
                     <td className="py-3 border-0 text-end px-4">
-                      <button
-                        onClick={() => eliminarCliente(cliente.id)}
-                        className="btn btn-sm btn-light text-danger rounded-circle p-2 border-0"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <div className="d-flex justify-content-end gap-2">
+                        <a
+                          href={`https://wa.me/?text=Hola%20${cliente.nombre},%20te%20escribo%20desde%20la%20agenda.`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-sm btn-light text-success rounded-circle p-2 border-0"
+                          title="Contactar por WhatsApp"
+                        >
+                          <MessageCircle size={18} />
+                        </a>
+                        <button
+                          onClick={() => eliminarCliente(cliente.id)}
+                          className="btn btn-sm btn-light text-danger rounded-circle p-2 border-0"
+                          title="Eliminar Cliente"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan="3" className="text-center py-5 text-muted">
-                    No hay clientes registrados. Comienza agendando un turno.
+                    {busqueda
+                      ? "No se encontraron clientes con ese nombre."
+                      : "No hay clientes registrados."}
                   </td>
                 </tr>
               )}

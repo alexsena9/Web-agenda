@@ -5,6 +5,7 @@ import {
   Clock,
   Trash2,
   CheckCircle,
+  Circle,
 } from "lucide-react";
 
 const Agenda = ({ turnos, setTurnos }) => {
@@ -36,26 +37,41 @@ const Agenda = ({ turnos, setTurnos }) => {
   };
 
   const eliminarTurno = (id) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar este turno?")) {
+    if (window.confirm("¿Eliminar este turno?")) {
       setTurnos(turnos.filter((t) => t.id !== id));
     }
   };
 
+  const toggleCompletado = (id) => {
+    setTurnos(
+      turnos.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              estado: t.estado === "Completado" ? "Pendiente" : "Completado",
+            }
+          : t,
+      ),
+    );
+  };
+
   return (
-    <div className="view-animate">
+    <div className="view-animate text-start">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="fw-bold mb-0">Calendario Semanal</h2>
-          <p className="text-muted">Gestiona tus citas y disponibilidad.</p>
+          <p className="text-muted">
+            Haz clic en el círculo para marcar turnos como realizados.
+          </p>
         </div>
         <div className="btn-group bg-white shadow-sm rounded-3">
-          <button className="btn btn-outline-light text-dark border-end px-3">
+          <button className="btn btn-outline-light text-dark border-end">
             <ChevronLeft size={18} />
           </button>
           <button className="btn btn-outline-light text-dark fw-bold px-4">
-            Esta Semana
+            Enero 2026
           </button>
-          <button className="btn btn-outline-light text-dark border-start px-3">
+          <button className="btn btn-outline-light text-dark border-start">
             <ChevronRight size={18} />
           </button>
         </div>
@@ -70,11 +86,11 @@ const Agenda = ({ turnos, setTurnos }) => {
             <thead className="bg-light text-center">
               <tr>
                 <th className="p-3 border-0" style={{ width: "80px" }}>
-                  <Clock size={18} className="text-muted" />
+                  <Clock size={18} />
                 </th>
                 {dias.map((dia) => (
-                  <th key={dia} className="p-3 border-0">
-                    <span className="fw-bold d-block">{dia}</span>
+                  <th key={dia} className="p-3 border-0 fw-bold">
+                    {dia}
                   </th>
                 ))}
               </tr>
@@ -82,11 +98,11 @@ const Agenda = ({ turnos, setTurnos }) => {
             <tbody>
               {horas.map((hora) => (
                 <tr key={hora}>
-                  <td className="text-center text-muted small fw-medium py-4 bg-light bg-opacity-50">
+                  <td className="text-center text-muted small py-4 bg-light bg-opacity-50">
                     {hora}
                   </td>
                   {dias.map((dia) => {
-                    const turnoEnSlot = turnos.find(
+                    const turno = turnos.find(
                       (t) =>
                         getDiaSemana(t.fecha) === dia &&
                         t.hora.startsWith(hora.split(":")[0]),
@@ -95,44 +111,57 @@ const Agenda = ({ turnos, setTurnos }) => {
                     return (
                       <td
                         key={`${dia}-${hora}`}
-                        className="calendar-slot p-1"
-                        style={{ height: "110px", verticalAlign: "top" }}
+                        className="p-1"
+                        style={{ height: "110px" }}
                       >
-                        {turnoEnSlot && (
-                          <div className="bg-primary-subtle text-primary p-2 rounded-3 h-100 border-start border-primary border-4 shadow-sm position-relative d-flex flex-column justify-content-between">
-                            <div>
-                              <div className="d-flex justify-content-between align-items-start">
-                                <p
-                                  className="small fw-bold mb-0 text-truncate"
-                                  style={{ maxWidth: "80%" }}
-                                >
-                                  {turnoEnSlot.cliente}
-                                </p>
-                                <button
-                                  onClick={() => eliminarTurno(turnoEnSlot.id)}
-                                  className="btn btn-link text-danger p-0 border-0"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
-                              </div>
+                        {turno && (
+                          <div
+                            className={`p-2 rounded-3 h-100 border-start border-4 shadow-sm transition-all ${
+                              turno.estado === "Completado"
+                                ? "bg-success bg-opacity-10 border-success opacity-75"
+                                : "bg-primary bg-opacity-10 border-primary"
+                            }`}
+                          >
+                            <div className="d-flex justify-content-between align-items-start">
                               <p
-                                className="mb-0 text-dark opacity-75"
-                                style={{ fontSize: "10px" }}
+                                className={`small fw-bold mb-0 text-truncate ${turno.estado === "Completado" ? "text-decoration-line-through" : ""}`}
                               >
-                                {turnoEnSlot.servicio}
+                                {turno.cliente}
                               </p>
+                              <button
+                                onClick={() => eliminarTurno(turno.id)}
+                                className="btn btn-link text-danger p-0 border-0"
+                              >
+                                <Trash2 size={12} />
+                              </button>
                             </div>
-                            <div className="d-flex justify-content-between align-items-center mt-1">
+                            <p
+                              className="small mb-1 text-muted"
+                              style={{ fontSize: "10px" }}
+                            >
+                              {turno.servicio}
+                            </p>
+
+                            <div className="d-flex justify-content-between align-items-center mt-2">
                               <span
-                                className="badge bg-primary text-white"
+                                className={`badge ${turno.estado === "Completado" ? "bg-success" : "bg-primary"} text-white`}
                                 style={{ fontSize: "9px" }}
                               >
-                                {turnoEnSlot.hora} hs
+                                {turno.hora} hs
                               </span>
-                              <CheckCircle
-                                size={14}
-                                className="text-success opacity-50"
-                              />
+                              <button
+                                onClick={() => toggleCompletado(turno.id)}
+                                className="btn btn-link p-0 border-0"
+                              >
+                                {turno.estado === "Completado" ? (
+                                  <CheckCircle
+                                    size={16}
+                                    className="text-success"
+                                  />
+                                ) : (
+                                  <Circle size={16} className="text-primary" />
+                                )}
+                              </button>
                             </div>
                           </div>
                         )}
