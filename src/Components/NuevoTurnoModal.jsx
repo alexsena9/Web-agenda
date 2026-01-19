@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   User,
@@ -7,27 +7,26 @@ import {
   Calendar as CalendarIcon,
 } from "lucide-react";
 
-const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno }) => {
+const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno, servicios }) => {
   const [formData, setFormData] = useState({
     cliente: "",
-    servicio: "Corte de Cabello",
+    servicio: servicios[0],
     fecha: "",
     hora: "",
-    estado: "Pendiente",
   });
+
+  useEffect(() => {
+    if (servicios && servicios.length > 0) {
+      setFormData((prev) => ({ ...prev, servicio: servicios[0] }));
+    }
+  }, [servicios]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onAddTurno({ ...formData, id: Date.now() });
-    setFormData({
-      cliente: "",
-      servicio: "Corte de Cabello",
-      fecha: "",
-      hora: "",
-      estado: "Pendiente",
-    });
+    setFormData({ ...formData, cliente: "", fecha: "", hora: "" });
     onClose();
   };
 
@@ -56,7 +55,7 @@ const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno }) => {
               <input
                 type="text"
                 className="form-control bg-light border-0 shadow-none"
-                placeholder="Nombre completo"
+                placeholder="Nombre"
                 value={formData.cliente}
                 onChange={(e) =>
                   setFormData({ ...formData, cliente: e.target.value })
@@ -81,10 +80,11 @@ const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno }) => {
                   setFormData({ ...formData, servicio: e.target.value })
                 }
               >
-                <option>Corte de Cabello</option>
-                <option>Barba</option>
-                <option>Tratamiento Facial</option>
-                <option>Consultoría</option>
+                {servicios.map((s, idx) => (
+                  <option key={idx} value={s}>
+                    {s}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
