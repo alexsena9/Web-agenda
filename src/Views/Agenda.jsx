@@ -6,55 +6,59 @@ import {
   Trash2,
   CheckCircle,
   Circle,
+  MessageSquare,
+  Info,
 } from "lucide-react";
 
 const Agenda = ({ turnos, setTurnos, horarios }) => {
   const [fechaReferencia, setFechaReferencia] = useState(new Date());
 
   const generarHoras = () => {
-    const lista = [];
+    let lista = [];
     for (let i = horarios.inicio; i <= horarios.fin; i++) {
       lista.push(`${i.toString().padStart(2, "0")}:00`);
     }
     return lista;
   };
 
-  const horas = generarHoras();
+  const enviarRecordatorio = (turno) => {
+    const mensaje = `Hola ${turno.cliente}, te recuerdo tu turno para *${turno.servicio}* el día ${turno.fecha} a las ${turno.hora} hs. ¡Te esperamos!`;
+    const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, "_blank");
+  };
 
-  const getLunes = (fecha) => {
-    const d = new Date(fecha);
+  const horas = generarHoras();
+  const getLunes = (f) => {
+    const d = new Date(f);
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(d.setDate(diff));
   };
-
   const lunesActual = getLunes(fechaReferencia);
   const semana = Array.from({ length: 5 }, (_, i) => {
     const d = new Date(lunesActual);
     d.setDate(lunesActual.getDate() + i);
     return d;
   });
-
   const formatearFecha = (date) => date.toISOString().split("T")[0];
 
   return (
     <div className="view-animate text-start">
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-          <h2 className="fw-bold mb-0">Calendario Semanal</h2>
+          <h2 className="fw-bold mb-0">Agenda Semanal</h2>
           <p className="text-muted mb-0">
-            Semana del {semana[0].toLocaleDateString()} al{" "}
-            {semana[4].toLocaleDateString()}
+            Gestiona y recuerda citas a tus clientes.
           </p>
         </div>
         <div className="d-flex gap-2">
           <button
             onClick={() => setFechaReferencia(new Date())}
-            className="btn btn-white border shadow-sm fw-bold"
+            className="btn btn-white border shadow-sm"
           >
             Hoy
           </button>
-          <div className="btn-group bg-white shadow-sm rounded-3 border">
+          <div className="btn-group bg-white shadow-sm rounded-3">
             <button
               onClick={() => {
                 const d = new Date(fechaReferencia);
@@ -83,7 +87,7 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
         <div className="table-responsive">
           <table
             className="table table-bordered mb-0"
-            style={{ minWidth: "900px" }}
+            style={{ minWidth: "1000px" }}
           >
             <thead className="bg-light text-center">
               <tr>
@@ -103,7 +107,7 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
             <tbody>
               {horas.map((hora) => (
                 <tr key={hora}>
-                  <td className="text-center text-muted small py-4 bg-light bg-opacity-50 fw-medium">
+                  <td className="text-center text-muted small py-4 bg-light bg-opacity-50">
                     {hora}
                   </td>
                   {semana.map((dia) => {
@@ -117,18 +121,29 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
                       <td
                         key={`${fechaKey}-${hora}`}
                         className="p-1"
-                        style={{ height: "120px", width: "18%" }}
+                        style={{ height: "130px", width: "18%" }}
                       >
                         {turno && (
                           <div
-                            className={`p-2 rounded-3 h-100 border-start border-4 shadow-sm animate-fade-up ${turno.estado === "Completado" ? "bg-success bg-opacity-10 border-success opacity-75" : "bg-primary bg-opacity-10 border-primary"}`}
+                            className={`p-2 rounded-3 h-100 border-start border-4 shadow-sm d-flex flex-column ${turno.estado === "Completado" ? "bg-success bg-opacity-10 border-success" : "bg-primary bg-opacity-10 border-primary"}`}
                           >
                             <div className="d-flex justify-content-between align-items-start">
-                              <p
-                                className={`small fw-bold mb-0 text-truncate ${turno.estado === "Completado" ? "text-decoration-line-through" : ""}`}
+                              <div
+                                className="text-truncate"
+                                style={{ maxWidth: "80%" }}
                               >
-                                {turno.cliente}
-                              </p>
+                                <p
+                                  className={`small fw-bold mb-0 ${turno.estado === "Completado" ? "text-decoration-line-through text-muted" : ""}`}
+                                >
+                                  {turno.cliente}
+                                </p>
+                                <span
+                                  className="text-muted"
+                                  style={{ fontSize: "9px" }}
+                                >
+                                  {turno.servicio}
+                                </span>
+                              </div>
                               <button
                                 onClick={() =>
                                   setTurnos(
@@ -140,49 +155,51 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
                                 <Trash2 size={12} />
                               </button>
                             </div>
-                            <p
-                              className="small mb-1 text-muted"
-                              style={{ fontSize: "10px" }}
-                            >
-                              {turno.servicio}
-                            </p>
-                            <div className="d-flex justify-content-between align-items-center mt-auto">
+
+                            {turno.notas && (
+                              <div
+                                className="mt-1 text-muted d-flex align-items-center gap-1"
+                                style={{ fontSize: "9px" }}
+                              >
+                                <Info size={10} />{" "}
+                                <span className="text-truncate">
+                                  {turno.notas}
+                                </span>
+                              </div>
+                            )}
+
+                            <div className="d-flex justify-content-between align-items-center mt-auto pt-2">
+                              <div className="d-flex gap-1">
+                                <button
+                                  onClick={() => toggleCompletado(turno.id)}
+                                  className="btn btn-link p-0 border-0"
+                                >
+                                  {turno.estado === "Completado" ? (
+                                    <CheckCircle
+                                      size={16}
+                                      className="text-success"
+                                    />
+                                  ) : (
+                                    <Circle
+                                      size={16}
+                                      className="text-primary opacity-50"
+                                    />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => enviarRecordatorio(turno)}
+                                  className="btn btn-link p-0 border-0 text-success"
+                                  title="Enviar recordatorio"
+                                >
+                                  <MessageSquare size={16} />
+                                </button>
+                              </div>
                               <span
-                                className={`badge ${turno.estado === "Completado" ? "bg-success" : "bg-primary"} text-white`}
+                                className="badge bg-white text-dark border"
                                 style={{ fontSize: "9px" }}
                               >
                                 {turno.hora} hs
                               </span>
-                              <button
-                                onClick={() =>
-                                  setTurnos(
-                                    turnos.map((t) =>
-                                      t.id === turno.id
-                                        ? {
-                                            ...t,
-                                            estado:
-                                              t.estado === "Completado"
-                                                ? "Pendiente"
-                                                : "Completado",
-                                          }
-                                        : t,
-                                    ),
-                                  )
-                                }
-                                className="btn btn-link p-0 border-0"
-                              >
-                                {turno.estado === "Completado" ? (
-                                  <CheckCircle
-                                    size={16}
-                                    className="text-success"
-                                  />
-                                ) : (
-                                  <Circle
-                                    size={16}
-                                    className="text-primary opacity-50"
-                                  />
-                                )}
-                              </button>
                             </div>
                           </div>
                         )}

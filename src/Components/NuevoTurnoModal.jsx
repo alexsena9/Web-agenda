@@ -5,6 +5,7 @@ import {
   Scissors,
   Clock,
   Calendar as CalendarIcon,
+  FileText,
 } from "lucide-react";
 
 const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno, servicios }) => {
@@ -13,28 +14,37 @@ const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno, servicios }) => {
     servicio: servicios[0],
     fecha: "",
     hora: "",
+    notas: "",
   });
 
   useEffect(() => {
-    if (servicios && servicios.length > 0) {
+    if (servicios?.length > 0)
       setFormData((prev) => ({ ...prev, servicio: servicios[0] }));
-    }
   }, [servicios]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAddTurno({ ...formData, id: Date.now() });
-    setFormData({ ...formData, cliente: "", fecha: "", hora: "" });
+    onAddTurno({ ...formData, id: Date.now(), estado: "Pendiente" });
+    setFormData({
+      cliente: "",
+      servicio: servicios[0],
+      fecha: "",
+      hora: "",
+      notas: "",
+    });
     onClose();
   };
 
   return (
-    <div className="modal-overlay d-flex align-items-center justify-content-center">
+    <div
+      className="modal-overlay d-flex align-items-center justify-content-center"
+      style={{ zIndex: 2000 }}
+    >
       <div className="modal-content-custom bg-white p-4 rounded-4 shadow-lg animate-fade-up">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h4 className="fw-bold mb-0">Agendar Nuevo Turno</h4>
+          <h4 className="fw-bold mb-0">Nuevo Turno</h4>
           <button
             onClick={onClose}
             className="btn btn-light rounded-circle p-2 border-0"
@@ -44,7 +54,7 @@ const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno, servicios }) => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
+          <div className="mb-3 text-start">
             <label className="form-label small fw-bold text-muted">
               CLIENTE
             </label>
@@ -65,7 +75,7 @@ const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno, servicios }) => {
             </div>
           </div>
 
-          <div className="mb-3">
+          <div className="mb-3 text-start">
             <label className="form-label small fw-bold text-muted">
               SERVICIO
             </label>
@@ -89,7 +99,7 @@ const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno, servicios }) => {
             </div>
           </div>
 
-          <div className="row">
+          <div className="row text-start">
             <div className="col-6 mb-3">
               <label className="form-label small fw-bold text-muted">
                 FECHA
@@ -120,11 +130,31 @@ const NuevoTurnoModal = ({ isOpen, onClose, onAddTurno, servicios }) => {
             </div>
           </div>
 
+          <div className="mb-3 text-start">
+            <label className="form-label small fw-bold text-muted">
+              NOTAS / REQUERIMIENTOS
+            </label>
+            <div className="input-group">
+              <span className="input-group-text bg-light border-0">
+                <FileText size={18} />
+              </span>
+              <textarea
+                className="form-control bg-light border-0 shadow-none"
+                rows="2"
+                placeholder="Ej: Es alérgico a X producto..."
+                value={formData.notas}
+                onChange={(e) =>
+                  setFormData({ ...formData, notas: e.target.value })
+                }
+              ></textarea>
+            </div>
+          </div>
+
           <button
             type="submit"
-            className="btn btn-primary w-100 py-3 rounded-3 fw-bold mt-3 shadow-sm"
+            className="btn btn-primary w-100 py-3 rounded-3 fw-bold mt-2 shadow-sm"
           >
-            CONFIRMAR TURNO
+            AGENDAR AHORA
           </button>
         </form>
       </div>

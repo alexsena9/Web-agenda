@@ -46,13 +46,12 @@ function App() {
       const existe = prev.find(
         (c) => c.nombre.toLowerCase() === nuevoTurno.cliente.toLowerCase(),
       );
-      if (existe) {
+      if (existe)
         return prev.map((c) =>
           c.id === existe.id
             ? { ...c, cantidadTurnos: c.cantidadTurnos + 1 }
             : c,
         );
-      }
       return [
         ...prev,
         {
@@ -94,18 +93,20 @@ function App() {
   };
 
   return (
-    <div className="d-flex min-vh-100 bg-light">
+    <div className="d-flex flex-column flex-lg-row min-vh-100 bg-light">
       <Sidebar
         view={view}
         setView={setView}
         onNewTurn={() => setIsModalOpen(true)}
       />
+
       <main
-        className="flex-grow-1 p-4 p-md-5"
+        className="flex-grow-1 p-3 p-md-4 p-lg-5 mb-5 mb-lg-0"
         style={{ overflowY: "auto", maxHeight: "100vh" }}
       >
         <div className="container-fluid px-0">{renderView()}</div>
       </main>
+
       <NuevoTurnoModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -5,6 +5,7 @@ body {
   font-family: "Inter", sans-serif;
   color: #1e293b;
   margin: 0;
+  overflow-x: hidden;
 }
 
 .transition-all {
@@ -118,4 +119,20 @@ body {
 
 .transition-all {
   transition: all 0.3s ease;
+}
+
+.modal-content-custom {
+  width: 95% !important;
+  max-width: 500px;
+}
+
+.table-responsive {
+  border-radius: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 991px) {
+  .view-animate {
+    padding-bottom: 60px;
+  }
 }
