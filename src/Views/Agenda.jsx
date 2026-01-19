@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,72 +8,74 @@ import {
   Circle,
 } from "lucide-react";
 
-const Agenda = ({ turnos, setTurnos }) => {
-  const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-  const horas = [
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "13:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-  ];
+const Agenda = ({ turnos, setTurnos, horarios }) => {
+  const [fechaReferencia, setFechaReferencia] = useState(new Date());
 
-  const getDiaSemana = (fechaStr) => {
-    const fecha = new Date(fechaStr + "T00:00:00");
-    const diasNombres = [
-      "Domingo",
-      "Lunes",
-      "Martes",
-      "Miércoles",
-      "Jueves",
-      "Viernes",
-      "Sábado",
-    ];
-    return diasNombres[fecha.getDay()];
-  };
-
-  const eliminarTurno = (id) => {
-    if (window.confirm("¿Eliminar este turno?")) {
-      setTurnos(turnos.filter((t) => t.id !== id));
+  const generarHoras = () => {
+    const lista = [];
+    for (let i = horarios.inicio; i <= horarios.fin; i++) {
+      lista.push(`${i.toString().padStart(2, "0")}:00`);
     }
+    return lista;
   };
 
-  const toggleCompletado = (id) => {
-    setTurnos(
-      turnos.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              estado: t.estado === "Completado" ? "Pendiente" : "Completado",
-            }
-          : t,
-      ),
-    );
+  const horas = generarHoras();
+
+  const getLunes = (fecha) => {
+    const d = new Date(fecha);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
   };
+
+  const lunesActual = getLunes(fechaReferencia);
+  const semana = Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(lunesActual);
+    d.setDate(lunesActual.getDate() + i);
+    return d;
+  });
+
+  const formatearFecha = (date) => date.toISOString().split("T")[0];
 
   return (
     <div className="view-animate text-start">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
           <h2 className="fw-bold mb-0">Calendario Semanal</h2>
-          <p className="text-muted">
-            Haz clic en el círculo para marcar turnos como realizados.
+          <p className="text-muted mb-0">
+            Semana del {semana[0].toLocaleDateString()} al{" "}
+            {semana[4].toLocaleDateString()}
           </p>
         </div>
-        <div className="btn-group bg-white shadow-sm rounded-3">
-          <button className="btn btn-outline-light text-dark border-end">
-            <ChevronLeft size={18} />
+        <div className="d-flex gap-2">
+          <button
+            onClick={() => setFechaReferencia(new Date())}
+            className="btn btn-white border shadow-sm fw-bold"
+          >
+            Hoy
           </button>
-          <button className="btn btn-outline-light text-dark fw-bold px-4">
-            Enero 2026
-          </button>
-          <button className="btn btn-outline-light text-dark border-start">
-            <ChevronRight size={18} />
-          </button>
+          <div className="btn-group bg-white shadow-sm rounded-3 border">
+            <button
+              onClick={() => {
+                const d = new Date(fechaReferencia);
+                d.setDate(d.getDate() - 7);
+                setFechaReferencia(d);
+              }}
+              className="btn btn-link text-dark border-end"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              onClick={() => {
+                const d = new Date(fechaReferencia);
+                d.setDate(d.getDate() + 7);
+                setFechaReferencia(d);
+              }}
+              className="btn btn-link text-dark"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -88,9 +90,12 @@ const Agenda = ({ turnos, setTurnos }) => {
                 <th className="p-3 border-0" style={{ width: "80px" }}>
                   <Clock size={18} />
                 </th>
-                {dias.map((dia) => (
-                  <th key={dia} className="p-3 border-0 fw-bold">
-                    {dia}
+                {semana.map((dia) => (
+                  <th key={dia} className="p-3 border-0">
+                    <span className="text-uppercase small text-muted d-block fw-bold">
+                      {dia.toLocaleDateString("es-ES", { weekday: "short" })}
+                    </span>
+                    <span className="fs-5">{dia.getDate()}</span>
                   </th>
                 ))}
               </tr>
@@ -98,29 +103,25 @@ const Agenda = ({ turnos, setTurnos }) => {
             <tbody>
               {horas.map((hora) => (
                 <tr key={hora}>
-                  <td className="text-center text-muted small py-4 bg-light bg-opacity-50">
+                  <td className="text-center text-muted small py-4 bg-light bg-opacity-50 fw-medium">
                     {hora}
                   </td>
-                  {dias.map((dia) => {
+                  {semana.map((dia) => {
+                    const fechaKey = formatearFecha(dia);
                     const turno = turnos.find(
                       (t) =>
-                        getDiaSemana(t.fecha) === dia &&
-                        t.hora.startsWith(hora.split(":")[0]),
+                        t.fecha === fechaKey &&
+                        t.hora.split(":")[0] === hora.split(":")[0],
                     );
-
                     return (
                       <td
-                        key={`${dia}-${hora}`}
+                        key={`${fechaKey}-${hora}`}
                         className="p-1"
-                        style={{ height: "110px" }}
+                        style={{ height: "120px", width: "18%" }}
                       >
                         {turno && (
                           <div
-                            className={`p-2 rounded-3 h-100 border-start border-4 shadow-sm transition-all ${
-                              turno.estado === "Completado"
-                                ? "bg-success bg-opacity-10 border-success opacity-75"
-                                : "bg-primary bg-opacity-10 border-primary"
-                            }`}
+                            className={`p-2 rounded-3 h-100 border-start border-4 shadow-sm animate-fade-up ${turno.estado === "Completado" ? "bg-success bg-opacity-10 border-success opacity-75" : "bg-primary bg-opacity-10 border-primary"}`}
                           >
                             <div className="d-flex justify-content-between align-items-start">
                               <p
@@ -129,7 +130,11 @@ const Agenda = ({ turnos, setTurnos }) => {
                                 {turno.cliente}
                               </p>
                               <button
-                                onClick={() => eliminarTurno(turno.id)}
+                                onClick={() =>
+                                  setTurnos(
+                                    turnos.filter((t) => t.id !== turno.id),
+                                  )
+                                }
                                 className="btn btn-link text-danger p-0 border-0"
                               >
                                 <Trash2 size={12} />
@@ -141,8 +146,7 @@ const Agenda = ({ turnos, setTurnos }) => {
                             >
                               {turno.servicio}
                             </p>
-
-                            <div className="d-flex justify-content-between align-items-center mt-2">
+                            <div className="d-flex justify-content-between align-items-center mt-auto">
                               <span
                                 className={`badge ${turno.estado === "Completado" ? "bg-success" : "bg-primary"} text-white`}
                                 style={{ fontSize: "9px" }}
@@ -150,7 +154,21 @@ const Agenda = ({ turnos, setTurnos }) => {
                                 {turno.hora} hs
                               </span>
                               <button
-                                onClick={() => toggleCompletado(turno.id)}
+                                onClick={() =>
+                                  setTurnos(
+                                    turnos.map((t) =>
+                                      t.id === turno.id
+                                        ? {
+                                            ...t,
+                                            estado:
+                                              t.estado === "Completado"
+                                                ? "Pendiente"
+                                                : "Completado",
+                                          }
+                                        : t,
+                                    ),
+                                  )
+                                }
                                 className="btn btn-link p-0 border-0"
                               >
                                 {turno.estado === "Completado" ? (
@@ -159,7 +177,10 @@ const Agenda = ({ turnos, setTurnos }) => {
                                     className="text-success"
                                   />
                                 ) : (
-                                  <Circle size={16} className="text-primary" />
+                                  <Circle
+                                    size={16}
+                                    className="text-primary opacity-50"
+                                  />
                                 )}
                               </button>
                             </div>

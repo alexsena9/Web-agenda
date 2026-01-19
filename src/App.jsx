@@ -28,37 +28,40 @@ function App() {
       : ["Corte de Cabello", "Barba", "Tratamiento Facial"];
   });
 
+  const [horarios, setHorarios] = useState(() => {
+    const saved = localStorage.getItem("web_agenda_horarios");
+    return saved ? JSON.parse(saved) : { inicio: 9, fin: 18 };
+  });
+
   useEffect(() => {
     localStorage.setItem("web_agenda_turnos", JSON.stringify(turnos));
     localStorage.setItem("web_agenda_clientes", JSON.stringify(clientes));
     localStorage.setItem("web_agenda_servicios", JSON.stringify(servicios));
-  }, [turnos, clientes, servicios]);
+    localStorage.setItem("web_agenda_horarios", JSON.stringify(horarios));
+  }, [turnos, clientes, servicios, horarios]);
 
   const handleAddTurno = (nuevoTurno) => {
     setTurnos([...turnos, nuevoTurno]);
-
-    setClientes((prevClientes) => {
-      const existe = prevClientes.find(
+    setClientes((prev) => {
+      const existe = prev.find(
         (c) => c.nombre.toLowerCase() === nuevoTurno.cliente.toLowerCase(),
       );
-
       if (existe) {
-        return prevClientes.map((c) =>
+        return prev.map((c) =>
           c.id === existe.id
             ? { ...c, cantidadTurnos: c.cantidadTurnos + 1 }
             : c,
         );
-      } else {
-        return [
-          ...prevClientes,
-          {
-            id: Date.now(),
-            nombre: nuevoTurno.cliente,
-            fechaRegistro: new Date().toLocaleDateString(),
-            cantidadTurnos: 1,
-          },
-        ];
       }
+      return [
+        ...prev,
+        {
+          id: Date.now(),
+          nombre: nuevoTurno.cliente,
+          fechaRegistro: new Date().toLocaleDateString(),
+          cantidadTurnos: 1,
+        },
+      ];
     });
   };
 
@@ -67,12 +70,23 @@ function App() {
       case "dashboard":
         return <Dashboard turnos={turnos} />;
       case "agenda":
-        return <Agenda turnos={turnos} setTurnos={setTurnos} />;
+        return (
+          <Agenda turnos={turnos} setTurnos={setTurnos} horarios={horarios} />
+        );
       case "clientes":
         return <Clientes clientes={clientes} setClientes={setClientes} />;
       case "config":
         return (
-          <Configuracion servicios={servicios} setServicios={setServicios} />
+          <Configuracion
+            servicios={servicios}
+            setServicios={setServicios}
+            turnos={turnos}
+            setTurnos={setTurnos}
+            clientes={clientes}
+            setClientes={setClientes}
+            horarios={horarios}
+            setHorarios={setHorarios}
+          />
         );
       default:
         return <Dashboard turnos={turnos} />;
