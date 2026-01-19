@@ -3,151 +3,223 @@ import {
   Users,
   CalendarCheck,
   TrendingUp,
-  AlertCircle,
-  BarChart3,
+  CheckCircle2,
+  MessageSquare,
+  UserPlus,
+  Calendar,
+  ArrowRight,
+  Clock,
 } from "lucide-react";
 
-const StatCard = ({ title, value, icon, color }) => (
-  <div className="col-md-3 mb-3">
-    <div className="card border-0 shadow-sm rounded-4 p-3 h-100">
-      <div className="d-flex align-items-center gap-3">
-        <div
-          className={`p-3 rounded-4 bg-${color} bg-opacity-10 text-${color}`}
-        >
-          {icon}
-        </div>
-        <div>
-          <h6 className="text-muted small mb-1">{title}</h6>
-          <h4 className="fw-bold mb-0">{value}</h4>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const Dashboard = ({ turnos }) => {
+const Dashboard = ({ turnos, setView, onNewTurn }) => {
   const hoy = new Date().toISOString().split("T")[0];
-  const turnosHoy = turnos.filter((t) => t.fecha === hoy).length;
-  const clientesUnicos = [...new Set(turnos.map((t) => t.cliente))].length;
-  const ingresosEstimados = turnos.length * 2500;
 
-  const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-  const actividadPorDia = diasSemana.map((dia) => {
-    const cantidad = turnos.filter((t) => {
-      const fecha = new Date(t.fecha + "T00:00:00");
-      const nombreDia = [
-        "Domingo",
-        "Lunes",
-        "Martes",
-        "Miércoles",
-        "Jueves",
-        "Viernes",
-        "Sábado",
-      ][fecha.getDay()];
-      return nombreDia === dia;
-    }).length;
-    return { dia, cantidad };
+  const turnosHoy = turnos.filter((t) => t.fecha === hoy);
+  const completadosHoy = turnosHoy.filter(
+    (t) => t.estado === "Completado",
+  ).length;
+  const pendientesHoy = turnosHoy.length - completadosHoy;
+  const progresoHoy =
+    turnosHoy.length > 0 ? (completadosHoy / turnosHoy.length) * 100 : 0;
+
+  const horaActual = new Date().toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
   });
+  const proximoTurno = turnosHoy
+    .filter((t) => t.estado !== "Completado" && t.hora >= horaActual)
+    .sort((a, b) => a.hora.localeCompare(b.hora))[0];
 
-  const maxActividad = Math.max(...actividadPorDia.map((d) => d.cantidad), 1);
+  const enviarRecordatorio = (turno) => {
+    const mensaje = `Hola ${turno.cliente}, te estamos esperando para tu turno de las ${turno.hora} hs.`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, "_blank");
+  };
 
   return (
     <div className="view-animate text-start">
-      <div className="mb-4">
-        <h2 className="fw-bold">Panel de Control</h2>
-        <p className="text-muted">Análisis de rendimiento de tu agenda.</p>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="fw-bold mb-0">¡Hola, Alexis!</h2>
+          <p className="text-muted">Esto es lo que tienes para hoy.</p>
+        </div>
+        <button
+          onClick={onNewTurn}
+          className="btn btn-primary rounded-pill px-4 d-none d-md-block shadow-sm"
+        >
+          + Nuevo Turno
+        </button>
       </div>
 
       <div className="row mb-4">
-        <StatCard
-          title="Turnos Hoy"
-          value={turnosHoy}
-          icon={<CalendarCheck />}
-          color="primary"
-        />
-        <StatCard
-          title="Clientes"
-          value={clientesUnicos}
-          icon={<Users />}
-          color="success"
-        />
-        <StatCard
-          title="Ingresos Est."
-          value={`$${ingresosEstimados}`}
-          icon={<TrendingUp />}
-          color="info"
-        />
-        <StatCard
-          title="Total Turnos"
-          value={turnos.length}
-          icon={<AlertCircle />}
-          color="warning"
-        />
+        <div className="col-12">
+          <div
+            className="d-flex gap-3 overflow-auto pb-2"
+            style={{ scrollbarWidth: "none" }}
+          >
+            <button
+              onClick={() => setView("agenda")}
+              className="btn btn-white shadow-sm border-0 rounded-4 p-3 text-start flex-shrink-0"
+              style={{ minWidth: "160px" }}
+            >
+              <div className="bg-primary bg-opacity-10 text-primary p-2 rounded-3 mb-2 d-inline-block">
+                <Calendar size={20} />
+              </div>
+              <p className="mb-0 fw-bold">Ver Agenda</p>
+              <small className="text-muted">Ir al calendario</small>
+            </button>
+            <button
+              onClick={() => setView("clientes")}
+              className="btn btn-white shadow-sm border-0 rounded-4 p-3 text-start flex-shrink-0"
+              style={{ minWidth: "160px" }}
+            >
+              <div className="bg-success bg-opacity-10 text-success p-2 rounded-3 mb-2 d-inline-block">
+                <Users size={20} />
+              </div>
+              <p className="mb-0 fw-bold">Clientes</p>
+              <small className="text-muted">Lista de contactos</small>
+            </button>
+            <button
+              onClick={onNewTurn}
+              className="btn btn-white shadow-sm border-0 rounded-4 p-3 text-start flex-shrink-0"
+              style={{ minWidth: "160px" }}
+            >
+              <div className="bg-warning bg-opacity-10 text-warning p-2 rounded-3 mb-2 d-inline-block">
+                <UserPlus size={20} />
+              </div>
+              <p className="mb-0 fw-bold">Agendar</p>
+              <small className="text-muted">Crear nueva cita</small>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="row">
-        <div className="col-lg-5 mb-4">
-          <div className="card border-0 shadow-sm rounded-4 p-4 h-100">
-            <div className="d-flex align-items-center gap-2 mb-4">
-              <BarChart3 className="text-primary" size={20} />
-              <h5 className="fw-bold mb-0">Actividad Semanal</h5>
+        <div className="col-lg-8 mb-4">
+          <div className="card border-0 shadow-sm rounded-4 p-4 h-100 bg-dark text-white overflow-hidden position-relative">
+            <div className="position-relative" style={{ zIndex: 1 }}>
+              <h5 className="opacity-75 mb-4">Próximo Cliente</h5>
+              {proximoTurno ? (
+                <div className="d-md-flex justify-content-between align-items-end">
+                  <div>
+                    <h1 className="display-4 fw-bold mb-2">
+                      {proximoTurno.cliente}
+                    </h1>
+                    <div className="d-flex align-items-center gap-3 mb-4 mb-md-0">
+                      <span className="badge bg-primary px-3 py-2 rounded-pill fs-6">
+                        <Clock size={18} className="me-2" /> {proximoTurno.hora}{" "}
+                        hs
+                      </span>
+                      <span className="text-white-50">
+                        {proximoTurno.servicio}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button
+                      onClick={() => enviarRecordatorio(proximoTurno)}
+                      className="btn btn-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2"
+                    >
+                      <MessageSquare size={18} /> Avisar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-4">
+                  <h3 className="opacity-50">
+                    No hay más turnos pendientes por ahora.
+                  </h3>
+                </div>
+              )}
             </div>
-            {actividadPorDia.map((item, index) => (
-              <div key={index} className="mb-3">
-                <div className="d-flex justify-content-between mb-1">
-                  <span className="small fw-medium">{item.dia}</span>
-                  <span className="small text-muted">
-                    {item.cantidad} turnos
-                  </span>
-                </div>
-                <div
-                  className="progress rounded-pill"
-                  style={{ height: "8px" }}
-                >
-                  <div
-                    className="progress-bar bg-primary rounded-pill transition-all"
-                    style={{
-                      width: `${(item.cantidad / maxActividad) * 100}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+            <div
+              className="position-absolute end-0 bottom-0 opacity-10"
+              style={{ marginRight: "-20px", marginBottom: "-20px" }}
+            >
+              <Users size={200} />
+            </div>
           </div>
         </div>
 
-        <div className="col-lg-7 mb-4">
+        <div className="col-lg-4 mb-4">
           <div className="card border-0 shadow-sm rounded-4 p-4 h-100">
-            <h5 className="fw-bold mb-4">Últimos Agendados</h5>
+            <h5 className="fw-bold mb-3">Progreso de Hoy</h5>
+            <div className="text-center mb-4">
+              <div className="position-relative d-inline-block">
+                <h2 className="fw-bold mb-0 mt-3">
+                  {Math.round(progresoHoy)}%
+                </h2>
+                <p className="text-muted small">Completado</p>
+              </div>
+            </div>
+            <div
+              className="progress rounded-pill mb-4"
+              style={{ height: "10px" }}
+            >
+              <div
+                className="progress-bar bg-success"
+                style={{ width: `${progresoHoy}%` }}
+              ></div>
+            </div>
+            <div className="d-flex justify-content-between border-top pt-3">
+              <div className="text-center border-end w-50">
+                <h4 className="fw-bold mb-0 text-primary">{pendientesHoy}</h4>
+                <small className="text-muted small">Pendientes</small>
+              </div>
+              <div className="text-center w-50">
+                <h4 className="fw-bold mb-0 text-success">{completadosHoy}</h4>
+                <small className="text-muted small">Realizados</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SECCIÓN 4: LISTA RÁPIDA DE HOY */}
+      <div className="row">
+        <div className="col-12">
+          <div className="card border-0 shadow-sm rounded-4 p-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h5 className="fw-bold mb-0">Turnos de Hoy</h5>
+              <button
+                onClick={() => setView("agenda")}
+                className="btn btn-link text-primary text-decoration-none small fw-bold"
+              >
+                Ver todo <ArrowRight size={16} />
+              </button>
+            </div>
             <div className="table-responsive">
               <table className="table align-middle">
-                <thead>
-                  <tr className="text-muted small">
-                    <th>CLIENTE</th>
-                    <th>SERVICIO</th>
-                    <th>HORA</th>
-                  </tr>
-                </thead>
                 <tbody>
-                  {turnos.length > 0 ? (
-                    turnos
-                      .slice(-4)
-                      .reverse()
+                  {turnosHoy.length > 0 ? (
+                    turnosHoy
+                      .sort((a, b) => a.hora.localeCompare(b.hora))
                       .map((t) => (
                         <tr key={t.id}>
-                          <td className="fw-bold">{t.cliente}</td>
-                          <td>{t.servicio}</td>
+                          <td style={{ width: "80px" }}>
+                            <span className="fw-bold">{t.hora}</span>
+                          </td>
                           <td>
-                            <span className="badge bg-light text-primary rounded-pill">
-                              {t.hora} hs
-                            </span>
+                            <div className="fw-bold">{t.cliente}</div>
+                            <small className="text-muted">{t.servicio}</small>
+                          </td>
+                          <td className="text-end">
+                            {t.estado === "Completado" ? (
+                              <span className="badge bg-success bg-opacity-10 text-success rounded-pill px-3">
+                                Realizado
+                              </span>
+                            ) : (
+                              <span className="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">
+                                Pendiente
+                              </span>
+                            )}
                           </td>
                         </tr>
                       ))
                   ) : (
                     <tr>
-                      <td colSpan="3" className="text-center py-4">
-                        No hay datos
+                      <td colSpan="3" className="text-center py-4 text-muted">
+                        No hay turnos para hoy
                       </td>
                     </tr>
                   )}

@@ -9,6 +9,7 @@ import "./App.css";
 
 function App() {
   const [view, setView] = useState("dashboard");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [turnos, setTurnos] = useState(() => {
@@ -42,32 +43,42 @@ function App() {
 
   const handleAddTurno = (nuevoTurno) => {
     setTurnos([...turnos, nuevoTurno]);
-    setClientes((prev) => {
-      const existe = prev.find(
+
+    setClientes((prevClientes) => {
+      const existe = prevClientes.find(
         (c) => c.nombre.toLowerCase() === nuevoTurno.cliente.toLowerCase(),
       );
-      if (existe)
-        return prev.map((c) =>
+
+      if (existe) {
+        return prevClientes.map((c) =>
           c.id === existe.id
             ? { ...c, cantidadTurnos: c.cantidadTurnos + 1 }
             : c,
         );
-      return [
-        ...prev,
-        {
-          id: Date.now(),
-          nombre: nuevoTurno.cliente,
-          fechaRegistro: new Date().toLocaleDateString(),
-          cantidadTurnos: 1,
-        },
-      ];
+      } else {
+        return [
+          ...prevClientes,
+          {
+            id: Date.now(),
+            nombre: nuevoTurno.cliente,
+            fechaRegistro: new Date().toLocaleDateString(),
+            cantidadTurnos: 1,
+          },
+        ];
+      }
     });
   };
 
   const renderView = () => {
     switch (view) {
       case "dashboard":
-        return <Dashboard turnos={turnos} />;
+        return (
+          <Dashboard
+            turnos={turnos}
+            setView={setView}
+            onNewTurn={() => setIsModalOpen(true)}
+          />
+        );
       case "agenda":
         return (
           <Agenda turnos={turnos} setTurnos={setTurnos} horarios={horarios} />
@@ -88,7 +99,7 @@ function App() {
           />
         );
       default:
-        return <Dashboard turnos={turnos} />;
+        return <Dashboard turnos={turnos} setView={setView} />;
     }
   };
 
