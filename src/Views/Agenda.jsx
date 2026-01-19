@@ -293,7 +293,7 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
                                   </button>
                                   <button
                                     onClick={() => enviarRecordatorio(turno)}
-                                    className="btn btn-link p-0 border-0 text-success"
+                                    className="btn btn-sm btn-outline-success border-0 rounded-3 p-2"
                                     title="WhatsApp"
                                   >
                                     <MessageSquare size={16} />
