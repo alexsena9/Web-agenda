@@ -10,6 +10,18 @@ import NuevoTurnoModal from "./Components/NuevoTurnoModal";
 import { Scissors, User, Settings, ArrowRight } from "lucide-react";
 import "./App.css";
 
+import { db } from "./firebase";
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
+
 function App() {
   const [ruta, setRuta] = useState(window.location.pathname);
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -18,9 +30,7 @@ function App() {
   const [view, setView] = useState("dashboard");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [turnos, setTurnos] = useState(
-    () => JSON.parse(localStorage.getItem("web_agenda_turnos")) || [],
-  );
+  const [turnos, setTurnos] = useState([]);
   const [clientes, setClientes] = useState(
     () => JSON.parse(localStorage.getItem("web_agenda_clientes")) || [],
   );
@@ -41,11 +51,23 @@ function App() {
   );
 
   useEffect(() => {
-    localStorage.setItem("web_agenda_turnos", JSON.stringify(turnos));
+    const q = collection(db, "turnos");
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const turnosList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTurnos(turnosList);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem("web_agenda_clientes", JSON.stringify(clientes));
     localStorage.setItem("web_agenda_servicios", JSON.stringify(servicios));
     localStorage.setItem("web_agenda_horarios", JSON.stringify(horarios));
-  }, [turnos, clientes, servicios, horarios]);
+  }, [clientes, servicios, horarios]);
 
   useEffect(() => {
     const handleLocationChange = () => setRuta(window.location.pathname);
@@ -58,29 +80,35 @@ function App() {
     setRuta(path);
   };
 
-  const handleAddTurno = (nuevoTurno) => {
-    setTurnos((prev) => [...prev, nuevoTurno]);
-    if (nuevoTurno.estado !== "Bloqueado") {
-      setClientes((prevClientes) => {
-        const existe = prevClientes.find(
-          (c) => c.nombre.toLowerCase() === nuevoTurno.cliente.toLowerCase(),
-        );
-        if (existe)
-          return prevClientes.map((c) =>
-            c.id === existe.id
-              ? { ...c, cantidadTurnos: c.cantidadTurnos + 1 }
-              : c,
+  const handleAddTurno = async (nuevoTurno) => {
+    try {
+      await addDoc(collection(db, "turnos"), nuevoTurno);
+
+      if (nuevoTurno.estado !== "Bloqueado") {
+        setClientes((prevClientes) => {
+          const existe = prevClientes.find(
+            (c) => c.nombre.toLowerCase() === nuevoTurno.cliente.toLowerCase(),
           );
-        return [
-          ...prevClientes,
-          {
-            id: Date.now(),
-            nombre: nuevoTurno.cliente,
-            fechaRegistro: new Date().toLocaleDateString(),
-            cantidadTurnos: 1,
-          },
-        ];
-      });
+          if (existe)
+            return prevClientes.map((c) =>
+              c.id === existe.id
+                ? { ...c, cantidadTurnos: c.cantidadTurnos + 1 }
+                : c,
+            );
+          return [
+            ...prevClientes,
+            {
+              id: Date.now(),
+              nombre: nuevoTurno.cliente,
+              fechaRegistro: new Date().toLocaleDateString(),
+              cantidadTurnos: 1,
+            },
+          ];
+        });
+      }
+    } catch (error) {
+      console.error("Error al guardar en Firebase:", error);
+      alert("Error al guardar el turno");
     }
   };
 
@@ -193,9 +221,7 @@ function App() {
           />
         );
       case "agenda":
-        return (
-          <Agenda turnos={turnos} setTurnos={setTurnos} horarios={horarios} />
-        );
+        return <Agenda turnos={turnos} horarios={horarios} />;
       case "clientes":
         return <Clientes clientes={clientes} setClientes={setClientes} />;
       case "config":
