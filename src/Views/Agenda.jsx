@@ -6,15 +6,17 @@ import {
   Trash2,
   CheckCircle,
   Circle,
-  MessageSquare,
-  Info,
   List,
   Calendar as CalendarIcon,
+  Lock,
 } from "lucide-react";
 
 const Agenda = ({ turnos, setTurnos, horarios }) => {
   const [fechaReferencia, setFechaReferencia] = useState(new Date());
   const [modoVista, setModoVista] = useState("semana"); // 'semana' o 'dia'
+
+  const wsLogo =
+    "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg";
 
   const generarHoras = () => {
     let lista = [];
@@ -24,10 +26,9 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
     return lista;
   };
 
-  const enviarRecordatorio = (turno) => {
-    const mensaje = `Hola ${turno.cliente}, te recuerdo tu turno para *${turno.servicio}* el día ${turno.fecha} a las ${turno.hora} hs. ¡Te esperamos!`;
-    const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, "_blank");
+  const enviarWhatsApp = (turno) => {
+    const mensaje = `Hola ${turno.cliente}, te recuerdo tu cita de *${turno.servicio}* hoy a las ${turno.hora} hs. ¡Te esperamos!`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, "_blank");
   };
 
   const toggleCompletado = (id) => {
@@ -41,6 +42,12 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
           : t,
       ),
     );
+  };
+
+  const eliminarTurno = (id) => {
+    if (window.confirm("¿Deseas eliminar este registro (Cita o Bloqueo)?")) {
+      setTurnos(turnos.filter((t) => t.id !== id));
+    }
   };
 
   const horas = generarHoras();
@@ -74,7 +81,7 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
           <h2 className="fw-bold mb-0">Agenda</h2>
-          <p className="text-muted mb-0">
+          <p className="text-muted mb-0 small">
             {modoVista === "semana"
               ? `Semana del ${semana[0].toLocaleDateString()}`
               : fechaReferencia.toLocaleDateString("es-ES", {
@@ -86,37 +93,37 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
         </div>
 
         <div className="d-flex gap-2">
-          <div className="btn-group shadow-sm border rounded-3 bg-white">
+          <div className="btn-group shadow-sm bg-white rounded-3 border overflow-hidden">
             <button
               onClick={() => setModoVista("dia")}
-              className={`btn btn-sm ${modoVista === "dia" ? "btn-primary" : "btn-white border-0 text-muted"}`}
+              className={`btn btn-sm px-3 border-0 ${modoVista === "dia" ? "btn-primary text-white" : "bg-white text-muted"}`}
             >
               <List size={18} />
             </button>
             <button
               onClick={() => setModoVista("semana")}
-              className={`btn btn-sm ${modoVista === "semana" ? "btn-primary" : "btn-white border-0 text-muted"}`}
+              className={`btn btn-sm px-3 border-0 ${modoVista === "semana" ? "btn-primary text-white" : "bg-white text-muted"}`}
             >
               <CalendarIcon size={18} />
             </button>
           </div>
 
-          <div className="btn-group bg-white shadow-sm rounded-3 border">
+          <div className="btn-group bg-white shadow-sm rounded-3 border overflow-hidden">
             <button
               onClick={() => cambiarFecha(modoVista === "semana" ? -7 : -1)}
-              className="btn btn-link text-dark border-end"
+              className="btn btn-white border-end"
             >
               <ChevronLeft size={20} />
             </button>
             <button
               onClick={() => setFechaReferencia(new Date())}
-              className="btn btn-link text-dark text-decoration-none fw-bold small border-end px-3"
+              className="btn btn-white fw-bold small border-end px-3"
             >
               Hoy
             </button>
             <button
               onClick={() => cambiarFecha(modoVista === "semana" ? 7 : 1)}
-              className="btn btn-link text-dark"
+              className="btn btn-white"
             >
               <ChevronRight size={20} />
             </button>
@@ -128,72 +135,74 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
         <div className="animate-fade-up">
           {turnosDelDia.length > 0 ? (
             <div className="d-flex flex-column gap-3">
-              {turnosDelDia.map((turno) => (
-                <div
-                  key={turno.id}
-                  className={`card border-0 border-start border-4 shadow-sm p-3 rounded-4 ${turno.estado === "Completado" ? "border-success bg-success bg-opacity-10 opacity-75" : "border-primary bg-white"}`}
-                >
-                  <div className="d-flex justify-content-between align-items-center">
+              {turnosDelDia.map((turno) => {
+                const isBloqueo = turno.estado === "Bloqueado";
+                return (
+                  <div
+                    key={turno.id}
+                    className={`card border-0 border-start border-4 shadow-sm p-3 rounded-4 bg-white d-flex flex-row align-items-center justify-content-between ${isBloqueo ? "border-secondary" : turno.estado === "Completado" ? "border-success opacity-75" : "border-primary"}`}
+                  >
                     <div className="d-flex align-items-center gap-3">
                       <div
-                        className="bg-light p-2 rounded-3 text-center"
-                        style={{ minWidth: "60px" }}
+                        className={`bg-light p-2 rounded-3 text-center fw-bold ${isBloqueo ? "text-muted" : "text-primary"}`}
+                        style={{ minWidth: "65px" }}
                       >
-                        <span className="fw-bold d-block">{turno.hora}</span>
-                        <small
-                          className="text-muted"
-                          style={{ fontSize: "10px" }}
-                        >
-                          HORA
-                        </small>
+                        {turno.hora}
                       </div>
                       <div>
                         <h6
                           className={`fw-bold mb-0 ${turno.estado === "Completado" ? "text-decoration-line-through text-muted" : ""}`}
                         >
+                          {isBloqueo && (
+                            <Lock size={14} className="me-2 text-muted" />
+                          )}
                           {turno.cliente}
                         </h6>
-                        <span
-                          className="badge bg-primary bg-opacity-10 text-primary border-0 fw-medium"
-                          style={{ fontSize: "11px" }}
-                        >
-                          {turno.servicio}
+                        <span className="text-muted small">
+                          {isBloqueo ? "Horario no disponible" : turno.servicio}
                         </span>
                       </div>
                     </div>
-                    <div className="d-flex gap-2">
+                    <div className="d-flex gap-3 align-items-center">
+                      {!isBloqueo && (
+                        <>
+                          <img
+                            src={wsLogo}
+                            alt="WhatsApp"
+                            onClick={() => enviarWhatsApp(turno)}
+                            style={{
+                              width: "24px",
+                              height: "24px",
+                              cursor: "pointer",
+                            }}
+                            className="hover-scale"
+                          />
+                          <button
+                            onClick={() => toggleCompletado(turno.id)}
+                            className="btn btn-link p-0 text-primary border-0"
+                          >
+                            {turno.estado === "Completado" ? (
+                              <CheckCircle size={24} className="text-success" />
+                            ) : (
+                              <Circle size={24} className="opacity-25" />
+                            )}
+                          </button>
+                        </>
+                      )}
                       <button
-                        onClick={() => enviarRecordatorio(turno)}
-                        className="btn btn-light text-success rounded-circle p-2 shadow-sm"
-                        title="Contactar"
+                        onClick={() => eliminarTurno(turno.id)}
+                        className="btn btn-link p-0 text-danger border-0 opacity-50"
                       >
-                        <MessageSquare size={18} />
-                      </button>
-                      <button
-                        onClick={() => toggleCompletado(turno.id)}
-                        className="btn btn-light text-primary rounded-circle p-2 shadow-sm"
-                      >
-                        {turno.estado === "Completado" ? (
-                          <CheckCircle size={18} className="text-success" />
-                        ) : (
-                          <Circle size={18} />
-                        )}
+                        <Trash2 size={20} />
                       </button>
                     </div>
                   </div>
-                  {turno.notes && (
-                    <div className="mt-2 p-2 bg-light rounded-3 d-flex align-items-start gap-2">
-                      <Info size={14} className="mt-1 text-muted" />
-                      <p className="mb-0 small text-muted">{turno.notes}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-5 bg-white rounded-4 shadow-sm border border-dashed">
-              <CalendarIcon size={48} className="text-muted mb-3 opacity-25" />
-              <p className="text-muted">No hay turnos para este día.</p>
+              <p className="text-muted mb-0">No hay registros para este día.</p>
             </div>
           )}
         </div>
@@ -201,10 +210,10 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
 
       {modoVista === "semana" && (
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden animate-fade-up">
-          <div className="table-responsive">
+          <div className="table-responsive" style={{ width: "100%" }}>
             <table
               className="table table-bordered mb-0"
-              style={{ minWidth: "1000px" }}
+              style={{ minWidth: "1000px", tableLayout: "fixed" }}
             >
               <thead className="bg-light text-center">
                 <tr>
@@ -234,6 +243,8 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
                           t.fecha === fechaKey &&
                           t.hora.split(":")[0] === hora.split(":")[0],
                       );
+                      const isBloqueo = turno?.estado === "Bloqueado";
+
                       return (
                         <td
                           key={`${fechaKey}-${hora}`}
@@ -242,25 +253,19 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
                         >
                           {turno && (
                             <div
-                              className={`p-2 rounded-3 h-100 border-start border-4 shadow-sm d-flex flex-column ${turno.estado === "Completado" ? "bg-success bg-opacity-10 border-success" : "bg-primary bg-opacity-10 border-primary"}`}
+                              className={`p-2 rounded-3 h-100 border-start border-4 shadow-sm d-flex flex-column ${isBloqueo ? "bg-secondary bg-opacity-10 border-secondary" : turno.estado === "Completado" ? "bg-success bg-opacity-10 border-success" : "bg-primary bg-opacity-10 border-primary"}`}
                             >
                               <div className="d-flex justify-content-between align-items-start mb-1">
-                                <div
-                                  className="text-truncate"
-                                  style={{ maxWidth: "80%" }}
+                                <p
+                                  className={`small fw-bold mb-0 text-truncate ${isBloqueo ? "text-muted" : turno.estado === "Completado" ? "text-decoration-line-through text-muted" : ""}`}
                                 >
-                                  <p
-                                    className={`small fw-bold mb-0 ${turno.estado === "Completado" ? "text-decoration-line-through" : ""}`}
-                                  >
-                                    {turno.cliente}
-                                  </p>
-                                </div>
+                                  {isBloqueo && (
+                                    <Lock size={10} className="me-1" />
+                                  )}
+                                  {turno.cliente}
+                                </p>
                                 <button
-                                  onClick={() =>
-                                    setTurnos(
-                                      turnos.filter((t) => t.id !== turno.id),
-                                    )
-                                  }
+                                  onClick={() => eliminarTurno(turno.id)}
                                   className="btn btn-link text-danger p-0 border-0"
                                 >
                                   <Trash2 size={12} />
@@ -270,42 +275,50 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
                                 className="text-muted d-block text-truncate mb-1"
                                 style={{ fontSize: "9px" }}
                               >
-                                {turno.servicio}
+                                {isBloqueo
+                                  ? "Personal / Descanso"
+                                  : turno.servicio}
                               </span>
 
-                              <div className="mt-auto d-flex justify-content-between align-items-center">
-                                <div className="d-flex gap-1">
-                                  <button
-                                    onClick={() => toggleCompletado(turno.id)}
-                                    className="btn btn-link p-0 border-0"
+                              {!isBloqueo && (
+                                <div className="mt-auto d-flex justify-content-between align-items-center">
+                                  <div className="d-flex gap-2 align-items-center">
+                                    <button
+                                      onClick={() => toggleCompletado(turno.id)}
+                                      className="btn btn-link p-0 border-0"
+                                    >
+                                      {turno.estado === "Completado" ? (
+                                        <CheckCircle
+                                          size={16}
+                                          className="text-success"
+                                        />
+                                      ) : (
+                                        <Circle
+                                          size={16}
+                                          className="text-primary opacity-50"
+                                        />
+                                      )}
+                                    </button>
+                                    <img
+                                      src={wsLogo}
+                                      alt="WS"
+                                      onClick={() => enviarWhatsApp(turno)}
+                                      style={{
+                                        width: "18px",
+                                        height: "18px",
+                                        cursor: "pointer",
+                                      }}
+                                      className="hover-scale"
+                                    />
+                                  </div>
+                                  <span
+                                    className="badge bg-white text-dark border fw-normal"
+                                    style={{ fontSize: "9px" }}
                                   >
-                                    {turno.estado === "Completado" ? (
-                                      <CheckCircle
-                                        size={16}
-                                        className="text-success"
-                                      />
-                                    ) : (
-                                      <Circle
-                                        size={16}
-                                        className="text-primary opacity-50"
-                                      />
-                                    )}
-                                  </button>
-                                  <button
-                                    onClick={() => enviarRecordatorio(turno)}
-                                    className="btn btn-sm btn-outline-success border-0 rounded-3 p-2"
-                                    title="WhatsApp"
-                                  >
-                                    <MessageSquare size={16} />
-                                  </button>
+                                    {turno.hora}
+                                  </span>
                                 </div>
-                                <span
-                                  className="badge bg-white text-dark border"
-                                  style={{ fontSize: "9px" }}
-                                >
-                                  {turno.hora} hs
-                                </span>
-                              </div>
+                              )}
                             </div>
                           )}
                         </td>
