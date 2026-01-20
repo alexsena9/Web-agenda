@@ -1,201 +1,191 @@
 import React, { useState } from "react";
 import {
+  Settings,
   Plus,
   Trash2,
-  CheckCircle,
-  Store,
+  Save,
+  LogOut,
   Clock,
-  Search,
-  UserMinus,
+  Scissors,
   Database,
+  CheckCircle,
 } from "lucide-react";
 
 const Configuracion = ({
   servicios,
   setServicios,
-  turnos,
-  setTurnos,
-  clientes,
-  setClientes,
   horarios,
   setHorarios,
+  onLogout,
 }) => {
   const [nuevoServicio, setNuevoServicio] = useState("");
-  const [busquedaBorrar, setBusquedaBorrar] = useState("");
+  const [showSavedAlert, setShowSavedAlert] = useState(false);
 
-  const agregarServicio = (e) => {
+  const handleAddServicio = (e) => {
     e.preventDefault();
-    if (nuevoServicio.trim() === "" || servicios.includes(nuevoServicio))
-      return;
-    setServicios([...servicios, nuevoServicio]);
-    setNuevoServicio("");
-  };
-
-  const eliminarServicio = (nombre) => {
-    if (servicios.length <= 1)
-      return alert("Debes tener al menos un servicio.");
-    setServicios(servicios.filter((s) => s !== nombre));
-  };
-
-  const clientesFiltrados = clientes.filter((c) =>
-    c.nombre.toLowerCase().includes(busquedaBorrar.toLowerCase()),
-  );
-
-  const eliminarClienteYTurnos = (clienteNombre, clienteId) => {
-    if (
-      window.confirm(
-        `¿Seguro? Se borrará a "${clienteNombre}" y todos sus turnos registrados.`,
-      )
-    ) {
-      setTurnos(
-        turnos.filter(
-          (t) => t.cliente.toLowerCase() !== clienteNombre.toLowerCase(),
-        ),
-      );
-      setClientes(clientes.filter((c) => c.id !== clienteId));
+    if (nuevoServicio.trim()) {
+      const actualizados = [...servicios, nuevoServicio.trim()];
+      setServicios(actualizados);
+      setNuevoServicio("");
+      triggerAlert();
     }
   };
 
+  const handleRemoveServicio = (index) => {
+    const actualizados = servicios.filter((_, i) => i !== index);
+    setServicios(actualizados);
+    triggerAlert();
+  };
+
+  const handleHorarioChange = (e) => {
+    const { name, value } = e.target;
+    setHorarios({
+      ...horarios,
+      [name]: parseInt(value),
+    });
+    triggerAlert();
+  };
+
+  const triggerAlert = () => {
+    setShowSavedAlert(true);
+    setTimeout(() => setShowSavedAlert(false), 2000);
+  };
+
   return (
-    <div className="view-animate text-start">
-      <div className="mb-4">
-        <h2 className="fw-bold">Configuración</h2>
-        <p className="text-muted">
-          Gestión precisa de tu base de datos y jornada.
-        </p>
+    <div className="animate-fade-in pb-5">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="fw-bold text-dark mb-1">Configuración</h2>
+          <p className="text-muted mb-0">
+            Personaliza los servicios y horarios de tu negocio
+          </p>
+        </div>
+        <button
+          onClick={onLogout}
+          className="btn btn-outline-danger d-flex align-items-center gap-2 rounded-3 fw-bold px-3"
+        >
+          <LogOut size={18} /> Salir
+        </button>
       </div>
 
-      <div className="row">
-        <div className="col-md-4 mb-4">
-          <div className="card border-0 shadow-sm rounded-4 p-4 h-100">
-            <div className="d-flex align-items-center gap-2 mb-4">
-              <Clock className="text-primary" size={24} />
-              <h5 className="fw-bold mb-0">Jornada</h5>
-            </div>
-            <div className="mb-3">
-              <label className="form-label small fw-bold text-muted">
-                INICIO
-              </label>
-              <select
-                className="form-select bg-light border-0"
-                value={horarios.inicio}
-                onChange={(e) =>
-                  setHorarios({ ...horarios, inicio: parseInt(e.target.value) })
-                }
-              >
-                {[...Array(24)].map((_, i) => (
-                  <option key={i} value={i}>
-                    {i}:00 hs
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="form-label small fw-bold text-muted">FIN</label>
-              <select
-                className="form-select bg-light border-0"
-                value={horarios.fin}
-                onChange={(e) =>
-                  setHorarios({ ...horarios, fin: parseInt(e.target.value) })
-                }
-              >
-                {[...Array(24)].map((_, i) => (
-                  <option key={i} value={i}>
-                    {i}:00 hs
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+      {showSavedAlert && (
+        <div className="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2 animate-fade-in py-2">
+          <CheckCircle size={18} /> Sincronizado con la nube con éxito
         </div>
+      )}
 
-        <div className="col-md-4 mb-4">
-          <div className="card border-0 shadow-sm rounded-4 p-4 h-100">
+      <div className="row g-4">
+        <div className="col-12 col-lg-7">
+          <div className="card border-0 shadow-sm rounded-4 p-4">
             <div className="d-flex align-items-center gap-2 mb-4">
-              <Store className="text-primary" size={24} />
-              <h5 className="fw-bold mb-0">Servicios</h5>
+              <div className="bg-primary bg-opacity-10 text-primary p-2 rounded-3">
+                <Scissors size={20} />
+              </div>
+              <h5 className="fw-bold mb-0 text-dark">Servicios Ofrecidos</h5>
             </div>
-            <form onSubmit={agregarServicio} className="d-flex gap-2 mb-3">
-              <input
-                type="text"
-                className="form-control bg-light border-0"
-                placeholder="Nuevo..."
-                value={nuevoServicio}
-                onChange={(e) => setNuevoServicio(e.target.value)}
-              />
-              <button type="submit" className="btn btn-primary px-3">
-                <Plus size={20} />
-              </button>
-            </form>
-            <div style={{ maxHeight: "150px", overflowY: "auto" }}>
-              {servicios.map((s, i) => (
-                <div
-                  key={i}
-                  className="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded-3"
+
+            <form onSubmit={handleAddServicio} className="mb-4">
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control bg-light border-0 py-2 ps-3"
+                  placeholder="Ej: Corte Degradado, Perfilado de Cejas..."
+                  value={nuevoServicio}
+                  onChange={(e) => setNuevoServicio(e.target.value)}
+                />
+                <button
+                  className="btn btn-primary px-4 fw-bold d-flex align-items-center gap-2"
+                  type="submit"
                 >
-                  <span className="small">{s}</span>
-                  <Trash2
-                    size={14}
-                    className="text-danger cursor-pointer"
-                    onClick={() => eliminarServicio(s)}
-                    style={{ cursor: "pointer" }}
-                  />
+                  <Plus size={18} /> Agregar
+                </button>
+              </div>
+            </form>
+
+            <div className="list-group list-group-flush border-top">
+              {servicios.map((servicio, index) => (
+                <div
+                  key={index}
+                  className="list-group-item px-0 py-3 d-flex justify-content-between align-items-center border-bottom"
+                >
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="bg-light p-2 rounded-circle text-muted">
+                      <CheckCircle size={14} />
+                    </div>
+                    <span className="fw-semibold text-dark">{servicio}</span>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveServicio(index)}
+                    className="btn btn-link text-danger p-2 hover-bg-danger-light rounded-3"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="col-md-4 mb-4">
-          <div className="card border-0 shadow-sm rounded-4 p-4 h-100 border-start border-warning border-4">
+        <div className="col-12 col-lg-5">
+          <div className="card border-0 shadow-sm rounded-4 p-4 mb-4">
+            <div className="d-flex align-items-center gap-2 mb-4">
+              <div className="bg-warning bg-opacity-10 text-warning p-2 rounded-3">
+                <Clock size={20} />
+              </div>
+              <h5 className="fw-bold mb-0 text-dark">Horario de Atención</h5>
+            </div>
+
+            <div className="row g-3">
+              <div className="col-6">
+                <label className="form-label small fw-bold text-muted">
+                  HORA APERTURA
+                </label>
+                <select
+                  name="inicio"
+                  className="form-select bg-light border-0 py-2"
+                  value={horarios.inicio}
+                  onChange={handleHorarioChange}
+                >
+                  {[...Array(24)].map((_, i) => (
+                    <option key={i} value={i}>
+                      {i}:00 hs
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-6">
+                <label className="form-label small fw-bold text-muted">
+                  HORA CIERRE
+                </label>
+                <select
+                  name="fin"
+                  className="form-select bg-light border-0 py-2"
+                  value={horarios.fin}
+                  onChange={handleHorarioChange}
+                >
+                  {[...Array(24)].map((_, i) => (
+                    <option key={i} value={i}>
+                      {i}:00 hs
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <p className="small text-muted mt-3 mb-0">
+              * Estos horarios definen los espacios disponibles que verán tus
+              clientes en la web de reservas.
+            </p>
+          </div>
+
+          <div className="card border-0 shadow-sm rounded-4 p-4 bg-dark text-white">
             <div className="d-flex align-items-center gap-2 mb-3">
-              <Database className="text-warning" size={24} />
-              <h5 className="fw-bold mb-0">Limpiar Datos</h5>
+              <Database size={20} className="text-primary" />
+              <h5 className="fw-bold mb-0">Estado de la Base</h5>
             </div>
-
-            <div className="input-group input-group-sm mb-3">
-              <span className="input-group-text bg-light border-0">
-                <Search size={14} />
-              </span>
-              <input
-                type="text"
-                className="form-control bg-light border-0"
-                placeholder="Buscar cliente para borrar..."
-                value={busquedaBorrar}
-                onChange={(e) => setBusquedaBorrar(e.target.value)}
-              />
-            </div>
-
-            <div style={{ maxHeight: "180px", overflowY: "auto" }}>
-              {busquedaBorrar && clientesFiltrados.length > 0 ? (
-                clientesFiltrados.map((c) => (
-                  <div
-                    key={c.id}
-                    className="d-flex justify-content-between align-items-center p-2 border-bottom"
-                  >
-                    <div className="text-truncate" style={{ maxWidth: "70%" }}>
-                      <p className="mb-0 small fw-bold">{c.nombre}</p>
-                      <small
-                        className="text-muted"
-                        style={{ fontSize: "10px" }}
-                      >
-                        {c.cantidadTurnos} turnos
-                      </small>
-                    </div>
-                    <button
-                      onClick={() => eliminarClienteYTurnos(c.nombre, c.id)}
-                      className="btn btn-sm btn-outline-danger border-0"
-                    >
-                      <UserMinus size={16} />
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-muted small py-4">
-                  Busca un nombre para ver opciones de borrado.
-                </p>
-              )}
-            </div>
+            <p className="small opacity-75 mb-0">
+              Todos tus datos están siendo respaldados y sincronizados en tiempo
+              real por <strong>Firebase Cloud</strong>.
+            </p>
           </div>
         </div>
       </div>

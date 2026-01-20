@@ -15,11 +15,9 @@ import {
   collection,
   onSnapshot,
   addDoc,
-  query,
-  where,
-  getDocs,
-  updateDoc,
   doc,
+  setDoc,
+  getDoc,
 } from "firebase/firestore";
 
 function App() {
@@ -31,43 +29,49 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [turnos, setTurnos] = useState([]);
-  const [clientes, setClientes] = useState(
-    () => JSON.parse(localStorage.getItem("web_agenda_clientes")) || [],
-  );
-  const [servicios, setServicios] = useState(
-    () =>
-      JSON.parse(localStorage.getItem("web_agenda_servicios")) || [
-        "Corte Clásico",
-        "Barba & Toalla Caliente",
-        "Corte + Barba",
-      ],
-  );
-  const [horarios, setHorarios] = useState(
-    () =>
-      JSON.parse(localStorage.getItem("web_agenda_horarios")) || {
-        inicio: 9,
-        fin: 19,
-      },
-  );
+  const [clientes, setClientes] = useState([]);
+  const [servicios, setServicios] = useState([]);
+  const [horarios, setHorarios] = useState({ inicio: 9, fin: 19 });
 
   useEffect(() => {
-    const q = collection(db, "turnos");
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const turnosList = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setTurnos(turnosList);
+    const unsub = onSnapshot(collection(db, "turnos"), (snapshot) => {
+      setTurnos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
-
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("web_agenda_clientes", JSON.stringify(clientes));
-    localStorage.setItem("web_agenda_servicios", JSON.stringify(servicios));
-    localStorage.setItem("web_agenda_horarios", JSON.stringify(horarios));
-  }, [clientes, servicios, horarios]);
+    const unsubConfig = onSnapshot(
+      doc(db, "configuracion", "negocio"),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          if (data.servicios) setServicios(data.servicios);
+          if (data.horarios) setHorarios(data.horarios);
+        } else {
+          const inicial = {
+            servicios: ["Corte Clásico", "Barba", "Corte + Barba"],
+            horarios: { inicio: 9, fin: 19 },
+          };
+          setDoc(doc(db, "configuracion", "negocio"), inicial);
+        }
+      },
+    );
+    return () => unsubConfig();
+  }, []);
+
+  useEffect(() => {
+    const unsubClientes = onSnapshot(collection(db, "clientes"), (snapshot) => {
+      setClientes(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsubClientes();
+  }, []);
+
+  const updateConfig = async (nuevaConfig) => {
+    await setDoc(doc(db, "configuracion", "negocio"), nuevaConfig, {
+      merge: true,
+    });
+  };
 
   useEffect(() => {
     const handleLocationChange = () => setRuta(window.location.pathname);
@@ -83,32 +87,25 @@ function App() {
   const handleAddTurno = async (nuevoTurno) => {
     try {
       await addDoc(collection(db, "turnos"), nuevoTurno);
-
       if (nuevoTurno.estado !== "Bloqueado") {
-        setClientes((prevClientes) => {
-          const existe = prevClientes.find(
-            (c) => c.nombre.toLowerCase() === nuevoTurno.cliente.toLowerCase(),
-          );
-          if (existe)
-            return prevClientes.map((c) =>
-              c.id === existe.id
-                ? { ...c, cantidadTurnos: c.cantidadTurnos + 1 }
-                : c,
-            );
-          return [
-            ...prevClientes,
-            {
-              id: Date.now(),
-              nombre: nuevoTurno.cliente,
-              fechaRegistro: new Date().toLocaleDateString(),
-              cantidadTurnos: 1,
-            },
-          ];
-        });
+        const existe = clientes.find(
+          (c) => c.nombre.toLowerCase() === nuevoTurno.cliente.toLowerCase(),
+        );
+        if (existe) {
+          await setDoc(doc(db, "clientes", existe.id), {
+            ...existe,
+            cantidadTurnos: existe.cantidadTurnos + 1,
+          });
+        } else {
+          await addDoc(collection(db, "clientes"), {
+            nombre: nuevoTurno.cliente,
+            fechaRegistro: new Date().toLocaleDateString(),
+            cantidadTurnos: 1,
+          });
+        }
       }
-    } catch (error) {
-      console.error("Error al guardar en Firebase:", error);
-      alert("Error al guardar el turno");
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -131,7 +128,6 @@ function App() {
             zIndex: 0,
           }}
         ></div>
-
         <div className="container position-relative z-1 px-4">
           <div className="text-center mb-5 animate-fade-up">
             <div className="bg-primary d-inline-flex p-4 rounded-circle mb-4 shadow-primary">
@@ -144,7 +140,6 @@ function App() {
               La evolución de tu barbería comienza aquí
             </p>
           </div>
-
           <div className="row g-4 justify-content-center">
             <div className="col-12 col-md-5 col-lg-4">
               <div
@@ -163,7 +158,6 @@ function App() {
                 </div>
               </div>
             </div>
-
             <div className="col-12 col-md-5 col-lg-4">
               <div
                 onClick={() => navegar("/admin")}
@@ -223,18 +217,14 @@ function App() {
       case "agenda":
         return <Agenda turnos={turnos} horarios={horarios} />;
       case "clientes":
-        return <Clientes clientes={clientes} setClientes={setClientes} />;
+        return <Clientes clientes={clientes} />;
       case "config":
         return (
           <Configuracion
             servicios={servicios}
-            setServicios={setServicios}
-            turnos={turnos}
-            setTurnos={setTurnos}
-            clientes={clientes}
-            setClientes={setClientes}
+            setServicios={(s) => updateConfig({ servicios: s })}
             horarios={horarios}
-            setHorarios={setHorarios}
+            setHorarios={(h) => updateConfig({ horarios: h })}
             onLogout={() => {
               setIsAuthenticated(false);
               sessionStorage.removeItem("isAuth");
