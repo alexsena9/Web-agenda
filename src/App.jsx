@@ -17,7 +17,9 @@ import {
   addDoc,
   doc,
   setDoc,
-  getDoc,
+  updateDoc,
+  query,
+  orderBy,
 } from "firebase/firestore";
 
 function App() {
@@ -34,10 +36,15 @@ function App() {
   const [horarios, setHorarios] = useState({ inicio: 9, fin: 19 });
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "turnos"), (snapshot) => {
-      setTurnos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    const q = collection(db, "turnos");
+    const unsubTurnos = onSnapshot(q, (snapshot) => {
+      const turnosList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTurnos(turnosList);
     });
-    return () => unsub();
+    return () => unsubTurnos();
   }, []);
 
   useEffect(() => {
@@ -49,11 +56,15 @@ function App() {
           if (data.servicios) setServicios(data.servicios);
           if (data.horarios) setHorarios(data.horarios);
         } else {
-          const inicial = {
-            servicios: ["Corte Clásico", "Barba", "Corte + Barba"],
+          const configInicial = {
+            servicios: [
+              "Corte Clásico",
+              "Barba & Toalla Caliente",
+              "Corte + Barba",
+            ],
             horarios: { inicio: 9, fin: 19 },
           };
-          setDoc(doc(db, "configuracion", "negocio"), inicial);
+          setDoc(doc(db, "configuracion", "negocio"), configInicial);
         }
       },
     );
@@ -62,16 +73,14 @@ function App() {
 
   useEffect(() => {
     const unsubClientes = onSnapshot(collection(db, "clientes"), (snapshot) => {
-      setClientes(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+      const clientesList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setClientes(clientesList);
     });
     return () => unsubClientes();
   }, []);
-
-  const updateConfig = async (nuevaConfig) => {
-    await setDoc(doc(db, "configuracion", "negocio"), nuevaConfig, {
-      merge: true,
-    });
-  };
 
   useEffect(() => {
     const handleLocationChange = () => setRuta(window.location.pathname);
@@ -86,15 +95,19 @@ function App() {
 
   const handleAddTurno = async (nuevoTurno) => {
     try {
-      await addDoc(collection(db, "turnos"), nuevoTurno);
+      const { id, ...dataParaSubir } = nuevoTurno;
+      await addDoc(collection(db, "turnos"), dataParaSubir);
+
       if (nuevoTurno.estado !== "Bloqueado") {
-        const existe = clientes.find(
-          (c) => c.nombre.toLowerCase() === nuevoTurno.cliente.toLowerCase(),
+        const nombreBuscado = nuevoTurno.cliente.toLowerCase().trim();
+        const clienteExistente = clientes.find(
+          (c) => c.nombre.toLowerCase().trim() === nombreBuscado,
         );
-        if (existe) {
-          await setDoc(doc(db, "clientes", existe.id), {
-            ...existe,
-            cantidadTurnos: existe.cantidadTurnos + 1,
+
+        if (clienteExistente) {
+          const clienteRef = doc(db, "clientes", clienteExistente.id);
+          await updateDoc(clienteRef, {
+            cantidadTurnos: (clienteExistente.cantidadTurnos || 0) + 1,
           });
         } else {
           await addDoc(collection(db, "clientes"), {
@@ -104,8 +117,17 @@ function App() {
           });
         }
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error("Error al guardar en Firebase:", error);
+    }
+  };
+
+  const updateConfig = async (nuevaConfig) => {
+    try {
+      const configRef = doc(db, "configuracion", "negocio");
+      await setDoc(configRef, nuevaConfig, { merge: true });
+    } catch (error) {
+      console.error("Error al actualizar configuración:", error);
     }
   };
 
@@ -222,9 +244,9 @@ function App() {
         return (
           <Configuracion
             servicios={servicios}
-            setServicios={(s) => updateConfig({ servicios: s })}
+            setServicios={(nuevos) => updateConfig({ servicios: nuevos })}
             horarios={horarios}
-            setHorarios={(h) => updateConfig({ horarios: h })}
+            setHorarios={(nuevos) => updateConfig({ horarios: nuevos })}
             onLogout={() => {
               setIsAuthenticated(false);
               sessionStorage.removeItem("isAuth");
