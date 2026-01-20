@@ -47,12 +47,6 @@ const Dashboard = ({ turnos, setView, onNewTurn }) => {
           <h2 className="fw-bold mb-0">¡Hola, Alexis!</h2>
           <p className="text-muted">Esto es lo que tienes para hoy.</p>
         </div>
-        <button
-          onClick={onNewTurn}
-          className="btn btn-primary rounded-pill px-4 d-none d-md-block shadow-sm"
-        >
-          + Nuevo Turno
-        </button>
       </div>
 
       <div className="row mb-4">

@@ -1,11 +1,17 @@
 import React, { useState } from "react";
 import {
-  Calendar,
-  Clock,
   Scissors,
   User,
-  CheckCircle2,
+  Settings,
+  ArrowRight,
   ChevronLeft,
+  CheckCircle2,
+  Wind,
+  Smile,
+  Smartphone,
+  Calendar,
+  Clock,
+  CreditCard,
 } from "lucide-react";
 
 const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
@@ -15,10 +21,40 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
   const [horaSeleccionada, setHoraSeleccionada] = useState("");
   const [nombre, setNombre] = useState("");
 
-  const horas = [];
-  for (let i = horarios.inicio; i <= horarios.fin; i++) {
-    horas.push(`${i.toString().padStart(2, "0")}:00`);
-  }
+  const volverAlInicio = () => {
+    window.history.pushState({}, "", "/");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
+  const BarberPattern = () => {
+    const icons = [Scissors, Wind, Smile, Smartphone];
+    return (
+      <div
+        className="position-fixed top-0 start-0 w-100 h-100 opacity-[0.05] pointer-events-none"
+        style={{ zIndex: 0, overflow: "hidden" }}
+      >
+        <div
+          className="d-flex flex-wrap gap-5 p-5"
+          style={{ transform: "rotate(-15deg) scale(1.5)" }}
+        >
+          {[...Array(100)].map((_, i) => {
+            const Icon = icons[i % icons.length];
+            return (
+              <Icon key={i} size={42} className="text-white" strokeWidth={1} />
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const generarHoras = () => {
+    const lista = [];
+    for (let i = horarios.inicio; i <= horarios.fin; i++) {
+      lista.push(`${i.toString().padStart(2, "0")}:00`);
+    }
+    return lista;
+  };
 
   const handleFinalizar = () => {
     onAddTurno({
@@ -34,55 +70,54 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
 
   return (
     <div
-      className="vw-100 vh-100 d-flex align-items-center justify-content-center"
-      style={{
-        background: "linear-gradient(180deg, #0d6efd 0%, #003d99 100%)",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        overflowY: "auto",
-        fontFamily: "'Inter', sans-serif",
-      }}
+      className="vw-100 vh-100 d-flex align-items-center justify-content-center position-relative overflow-hidden"
+      style={{ backgroundColor: "#020617" }}
     >
-      <div className="container-fluid d-flex justify-content-center py-md-5 py-3">
+      <BarberPattern />
+
+      <div className="container position-relative z-1 d-flex justify-content-center px-3">
         <div
-          className="card border-0 shadow-lg rounded-4 overflow-hidden animate-fade-up w-100"
+          className="card border-0 rounded-5 shadow-2xl animate-fade-up w-100"
           style={{
             maxWidth: "500px",
-            minHeight: "650px",
-            display: "flex",
-            flexDirection: "column",
+            background: "rgba(255, 255, 255, 0.03)",
+            backdropFilter: "blur(15px)",
+            WebkitBackdropFilter: "blur(15px)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
           }}
         >
           {paso < 4 && (
-            <div className="bg-white p-4 text-center border-bottom">
-              <div className="text-primary mb-2">
-                <Scissors size={32} strokeWidth={2.5} />
-              </div>
-              <h4 className="fw-bold text-dark mb-0">Reserva tu Turno</h4>
-              <p className="text-muted small mb-0">
-                Gestión Profesional de Citas
-              </p>
-
+            <div className="p-4 text-center border-bottom border-white border-opacity-10">
+              <button
+                onClick={paso === 1 ? volverAlInicio : () => setPaso(paso - 1)}
+                className="btn btn-link position-absolute start-0 top-0 mt-4 ms-3 text-white opacity-50 text-decoration-none"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <h4 className="fw-bold text-white mb-0">Reserva tu Turno</h4>
               <div
-                className="progress mt-4"
-                style={{ height: "6px", borderRadius: "10px" }}
+                className="progress mt-3 mx-auto"
+                style={{
+                  height: "4px",
+                  width: "100px",
+                  background: "rgba(255,255,255,0.1)",
+                }}
               >
                 <div
-                  className="progress-bar progress-bar-striped progress-bar-animated transition-all"
-                  role="progressbar"
-                  style={{ width: `${(paso / 3) * 100}%` }}
+                  className="progress-bar bg-primary"
+                  style={{ width: `${(paso / 3) * 100}%`, transition: "0.5s" }}
                 ></div>
               </div>
             </div>
           )}
 
-          <div className="card-body p-4 d-flex flex-column flex-grow-1">
+          <div className="card-body p-4 p-md-5">
             {paso === 1 && (
               <div className="animate-fade-in">
-                <h6 className="fw-bold text-dark mb-4 text-start text-uppercase small tracking-wider">
-                  1. Elige el Servicio
-                </h6>
+                <h5 className="text-white fw-bold mb-4 d-flex align-items-center gap-2">
+                  <Scissors size={20} className="text-primary" /> 1. Elige un
+                  servicio
+                </h5>
                 <div className="d-grid gap-3">
                   {servicios.map((s, i) => (
                     <button
@@ -91,17 +126,28 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
                         setServicioSeleccionado(s);
                         setPaso(2);
                       }}
-                      className="btn btn-light border-0 text-start p-3 rounded-4 d-flex justify-content-between align-items-center shadow-sm-hover transition-all"
+                      className="btn border-0 text-start p-3 rounded-4 d-flex justify-content-between align-items-center transition-all"
+                      style={{
+                        background: "rgba(255, 255, 255, 0.05)",
+                        color: "white",
+                      }}
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.background =
+                          "rgba(255, 255, 255, 0.1)")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.background =
+                          "rgba(255, 255, 255, 0.05)")
+                      }
                     >
-                      <div>
-                        <span className="d-block fw-bold fs-5 text-dark">
-                          {s.nombre}
-                        </span>
-                        <span className="text-muted smaller">
-                          Ver disponibilidad
-                        </span>
-                      </div>
-                      <span className="fw-bold text-primary fs-5">
+                      <span className="fw-bold">{s.nombre}</span>
+                      <span
+                        className="badge rounded-pill px-3 py-2"
+                        style={{
+                          background: "rgba(25, 135, 84, 0.2)",
+                          color: "#2ecc71",
+                        }}
+                      >
                         ${s.precio}
                       </span>
                     </button>
@@ -111,27 +157,23 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
             )}
 
             {paso === 2 && (
-              <div className="animate-fade-in text-start flex-grow-1">
-                <button
-                  onClick={() => setPaso(1)}
-                  className="btn btn-link text-decoration-none text-muted p-0 mb-4 d-flex align-items-center gap-1"
-                >
-                  <ChevronLeft size={16} /> Volver
-                </button>
-                <h6 className="fw-bold text-dark mb-3">2. Fecha y Hora</h6>
-
+              <div className="animate-fade-in text-start">
+                <h5 className="text-white fw-bold mb-4 d-flex align-items-center gap-2">
+                  <Calendar size={20} className="text-primary" /> 2. Fecha y
+                  hora
+                </h5>
                 <input
                   type="date"
-                  className="form-control form-control-lg border-0 bg-light mb-4 rounded-3"
+                  className="form-control form-control-lg border-0 mb-4 rounded-4 text-white shadow-none"
+                  style={{ background: "rgba(255, 255, 255, 0.05)" }}
                   value={fecha}
                   onChange={(e) => setFecha(e.target.value)}
                 />
-
                 <div
-                  className="row g-2 overflow-auto custom-scroll"
-                  style={{ maxHeight: "350px" }}
+                  className="row g-2 overflow-auto pr-2"
+                  style={{ maxHeight: "250px" }}
                 >
-                  {horas.map((h) => {
+                  {generarHoras().map((h) => {
                     const ocupado = turnos.some(
                       (t) => t.fecha === fecha && t.hora === h,
                     );
@@ -143,11 +185,16 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
                             setHoraSeleccionada(h);
                             setPaso(3);
                           }}
-                          className={`btn w-100 py-3 rounded-3 fw-bold transition-all ${
+                          className={`btn w-100 py-3 rounded-4 fw-bold border-0 transition-all ${
                             ocupado
-                              ? "btn-light text-muted opacity-50"
-                              : "btn-outline-primary"
+                              ? "opacity-25 bg-secondary text-white"
+                              : "text-white"
                           }`}
+                          style={{
+                            background: ocupado
+                              ? "transparent"
+                              : "rgba(255, 255, 255, 0.05)",
+                          }}
                         >
                           {h}
                         </button>
@@ -159,49 +206,49 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
             )}
 
             {paso === 3 && (
-              <div className="animate-fade-in text-start flex-grow-1 d-flex flex-column">
-                <button
-                  onClick={() => setPaso(2)}
-                  className="btn btn-link text-decoration-none text-muted p-0 mb-4 d-flex align-items-center gap-1"
-                >
-                  <ChevronLeft size={16} /> Cambiar horario
-                </button>
-
+              <div className="animate-fade-in">
+                <h5 className="text-white fw-bold mb-4 d-flex align-items-center gap-2">
+                  <CreditCard size={20} className="text-primary" /> 3. Confirma
+                  tu cita
+                </h5>
                 <div
-                  className="p-4 rounded-4 mb-4"
-                  style={{ background: "#f0f7ff", border: "1px solid #cfe2ff" }}
+                  className="rounded-4 p-4 mb-4"
+                  style={{
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.05)",
+                  }}
                 >
                   <div className="d-flex justify-content-between mb-2">
-                    <span className="text-muted">Servicio:</span>
-                    <span className="fw-bold">
-                      {servicioSeleccionado.nombre}
+                    <span className="text-white opacity-50 small">
+                      Servicio:
+                    </span>
+                    <span className="text-white fw-bold">
+                      {servicioSeleccionado?.nombre}
                     </span>
                   </div>
-                  <div className="d-flex justify-content-between mb-2">
-                    <span className="text-muted">Fecha:</span>
-                    <span className="fw-bold">{fecha}</span>
+                  <div className="d-flex justify-content-between mb-3">
+                    <span className="text-white opacity-50 small">Cuándo:</span>
+                    <span className="text-white fw-bold">
+                      {fecha} • {horaSeleccionada} HS
+                    </span>
                   </div>
-                  <div className="d-flex justify-content-between">
-                    <span className="text-muted">Hora:</span>
-                    <span className="fw-bold">{horaSeleccionada} HS</span>
-                  </div>
-                  <hr className="my-3" />
-                  <div className="d-flex justify-content-between align-items-center">
-                    <span className="fw-bold text-dark">Precio Total:</span>
-                    <span className="fw-bold text-primary fs-3">
-                      ${servicioSeleccionado.precio}
+                  <div className="pt-3 border-top border-white border-opacity-10 d-flex justify-content-between align-items-center">
+                    <span className="text-white fw-bold">Total a pagar:</span>
+                    <span className="text-success h3 fw-bold mb-0">
+                      ${servicioSeleccionado?.precio}
                     </span>
                   </div>
                 </div>
 
-                <div className="mb-4 mt-auto">
-                  <label className="form-label small fw-bold text-muted">
+                <div className="mb-4">
+                  <label className="form-label small fw-bold text-white opacity-50 mb-2">
                     TU NOMBRE COMPLETO
                   </label>
                   <input
                     type="text"
-                    className="form-control form-control-lg bg-light border-0 rounded-3"
-                    placeholder="Escribe tu nombre..."
+                    className="form-control form-control-lg border-0 rounded-4 text-white shadow-none"
+                    style={{ background: "rgba(255, 255, 255, 0.08)" }}
+                    placeholder="Ej: Carlos Sánchez"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                   />
@@ -210,32 +257,28 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
                 <button
                   disabled={!nombre}
                   onClick={handleFinalizar}
-                  className="btn btn-primary btn-lg w-100 rounded-4 py-3 fw-bold shadow-primary transition-all"
+                  className="btn btn-primary btn-lg w-100 rounded-4 py-3 fw-bold shadow-lg"
+                  style={{ boxShadow: "0 10px 20px rgba(13, 110, 253, 0.3)" }}
                 >
-                  Agendar Turno Ahora
+                  Confirmar Reserva
                 </button>
               </div>
             )}
 
             {paso === 4 && (
-              <div className="text-center py-5 animate-fade-in flex-grow-1 d-flex flex-column justify-content-center">
-                <div className="bg-success bg-opacity-10 rounded-circle d-inline-block p-4 mb-4 mx-auto">
-                  <CheckCircle2
-                    size={70}
-                    className="text-success"
-                    strokeWidth={1.5}
-                  />
+              <div className="text-center py-4 animate-fade-in">
+                <div className="bg-success bg-opacity-10 text-success rounded-circle d-inline-block p-4 mb-4">
+                  <CheckCircle2 size={64} strokeWidth={2.5} />
                 </div>
-                <h2 className="fw-bold text-dark mb-3">¡Reserva Exitosa!</h2>
-                <p className="text-muted px-4 mb-5">
-                  Todo listo, <strong>{nombre}</strong>. Tu cita ha sido
-                  agendada. ¡Te esperamos!
+                <h2 className="fw-bold text-white mb-3">¡Listo!</h2>
+                <p className="text-white opacity-75 mb-5 px-3">
+                  Tu turno ha sido agendado con éxito. ¡Te esperamos!
                 </p>
                 <button
-                  onClick={() => window.location.reload()}
-                  className="btn btn-primary btn-lg rounded-pill px-5 shadow-sm"
+                  onClick={volverAlInicio}
+                  className="btn btn-outline-light btn-lg rounded-4 px-5 py-3 border-white border-opacity-25"
                 >
-                  Finalizar
+                  Volver al Inicio
                 </button>
               </div>
             )}
