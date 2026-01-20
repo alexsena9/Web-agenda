@@ -1,224 +1,153 @@
 import React from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  MessageSquare,
   Trash2,
-  Check,
-  Lock,
-  Unlock,
+  Clock,
+  User,
+  Scissors,
+  Calendar as CalendarIcon,
 } from "lucide-react";
-import { db } from "../firebase";
-import {
-  doc,
-  deleteDoc,
-  updateDoc,
-  addDoc,
-  collection,
-} from "firebase/firestore";
 
-const Agenda = ({ turnos, horarios }) => {
-  const [fechaSeleccionada, setFechaSeleccionada] = React.useState(
-    new Date().toISOString().split("T")[0],
-  );
+const Agenda = ({ turnos, horarios, onEliminarTurno }) => {
+  const hoy = new Date().toISOString().split("T")[0];
 
-  const cambiarFecha = (dias) => {
-    const nuevaFecha = new Date(fechaSeleccionada);
-    nuevaFecha.setDate(nuevaFecha.getDate() + dias);
-    setFechaSeleccionada(nuevaFecha.toISOString().split("T")[0]);
-  };
-
-  const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de eliminar este registro?")) {
-      try {
-        await deleteDoc(doc(db, "turnos", id));
-      } catch (error) {
-        console.error("Error al eliminar:", error);
-      }
-    }
-  };
-
-  const handleCompletar = async (id, estadoActual) => {
-    const nuevoEstado =
-      estadoActual === "Completado" ? "Pendiente" : "Completado";
-    try {
-      await updateDoc(doc(db, "turnos", id), { estado: nuevoEstado });
-    } catch (error) {
-      console.error("Error al actualizar:", error);
-    }
-  };
-
-  const contactarWhatsApp = (nombre, fecha, hora) => {
-    const mensaje = `Hola ${nombre}, te escribo de la barbería para recordarte tu turno el día ${fecha} a las ${hora}.`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, "_blank");
-  };
-
-  const toggleBloqueo = async (hora, turnoExistente) => {
-    if (turnoExistente) {
-      if (turnoExistente.estado === "Bloqueado") {
-        await deleteDoc(doc(db, "turnos", turnoExistente.id));
-      }
-    } else {
-      try {
-        await addDoc(collection(db, "turnos"), {
-          cliente: "HORARIO BLOQUEADO",
-          servicio: "Descanso / Personal",
-          fecha: fechaSeleccionada,
-          hora: hora,
-          estado: "Bloqueado",
-        });
-      } catch (error) {
-        console.error("Error al bloquear:", error);
-      }
-    }
-  };
-
-  const horas = [];
-  for (let i = horarios.inicio; i <= horarios.fin; i++) {
-    horas.push(`${i.toString().padStart(2, "0")}:00`);
-  }
+  const turnosHoy = turnos
+    .filter((t) => t.fecha === hoy)
+    .sort((a, b) => a.hora.localeCompare(b.hora));
 
   return (
-    <div className="animate-fade-in text-start">
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div className="animate-fade-in">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
-          <h2 className="fw-bold text-dark mb-1">Agenda Diaria</h2>
-          <p className="text-muted mb-0">
-            Gestiona tus citas y bloqueos rápidos
+          <h2 className="fw-bold text-dark mb-1">Agenda del Día</h2>
+          <p className="text-muted mb-0 d-flex align-items-center gap-2">
+            <CalendarIcon size={16} />{" "}
+            {new Date().toLocaleDateString("es-ES", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
           </p>
         </div>
-        <div className="d-flex align-items-center bg-white border rounded-3 p-1 shadow-sm">
-          <button
-            onClick={() => cambiarFecha(-1)}
-            className="btn btn-link text-dark p-2"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <input
-            type="date"
-            className="form-control border-0 fw-bold text-center"
-            value={fechaSeleccionada}
-            onChange={(e) => setFechaSeleccionada(e.target.value)}
-            style={{ width: "160px" }}
-          />
-          <button
-            onClick={() => cambiarFecha(1)}
-            className="btn btn-link text-dark p-2"
-          >
-            <ChevronRight size={20} />
-          </button>
+        <div className="bg-white px-4 py-2 rounded-4 shadow-sm border">
+          <span className="text-muted small fw-bold">TOTAL TURNOS:</span>
+          <span className="ms-2 fw-bold text-primary">{turnosHoy.length}</span>
         </div>
       </div>
 
-      <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div className="list-group list-group-flush">
-          {horas.map((hora) => {
-            const turno = turnos.find(
-              (t) => t.fecha === fechaSeleccionada && t.hora === hora,
-            );
-            const esBloqueo = turno?.estado === "Bloqueado";
-
-            return (
-              <div
-                key={hora}
-                className={`list-group-item p-3 transition-all ${esBloqueo ? "bg-danger bg-opacity-10" : ""}`}
-              >
-                <div className="row align-items-center">
-                  <div className="col-auto">
-                    <div
-                      className="fw-bold text-primary d-flex align-items-center gap-2"
-                      style={{ minWidth: "70px" }}
-                    >
-                      <Clock size={16} className="text-muted" />
-                      {hora}
+      <div className="row g-3">
+        {turnosHoy.length > 0 ? (
+          turnosHoy.map((turno) => (
+            <div key={turno.id} className="col-12 col-xl-6">
+              <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div className="d-flex">
+                  <div className="bg-primary d-flex align-items-center justify-content-center px-3 text-white">
+                    <div className="text-center">
+                      <Clock size={20} className="mb-1" />
+                      <div className="fw-bold small">{turno.hora}</div>
                     </div>
                   </div>
 
-                  <div className="col">
-                    <div className="d-flex align-items-center justify-content-between">
-                      <div>
-                        {turno ? (
-                          <>
-                            <h6
-                              className={`mb-0 fw-bold ${turno.estado === "Completado" ? "text-decoration-line-through text-muted" : esBloqueo ? "text-danger" : "text-dark"}`}
-                            >
-                              {turno.cliente}
-                            </h6>
-                            <small className="text-muted d-block">
-                              {turno.servicio}{" "}
-                              {turno.precio ? `($${turno.precio})` : ""}
-                            </small>
-                          </>
-                        ) : (
-                          <span className="text-muted small fst-italic">
-                            Disponible para citas
-                          </span>
-                        )}
+                  <div className="card-body p-3 d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="d-flex align-items-center gap-2 mb-1">
+                        <User size={16} className="text-primary" />
+                        <h6 className="fw-bold mb-0 text-capitalize">
+                          {turno.cliente}
+                        </h6>
                       </div>
-
-                      <div className="d-flex gap-2">
-                        {turno && !esBloqueo && (
-                          <>
-                            <button
-                              title="Marcar como completado"
-                              className={`btn btn-sm rounded-3 border-0 ${turno.estado === "Completado" ? "btn-success" : "btn-light text-muted"}`}
-                              onClick={() =>
-                                handleCompletar(turno.id, turno.estado)
-                              }
-                            >
-                              <Check size={16} />
-                            </button>
-
-                            <button
-                              title="Enviar recordatorio"
-                              onClick={() =>
-                                contactarWhatsApp(
-                                  turno.cliente,
-                                  turno.fecha,
-                                  turno.hora,
-                                )
-                              }
-                              className="btn btn-sm btn-light text-primary rounded-3 border-0"
-                            >
-                              <MessageSquare size={16} />
-                            </button>
-                          </>
-                        )}
-
-                        <button
-                          className={`btn btn-sm rounded-3 border-0 ${esBloqueo ? "btn-danger shadow-sm" : "btn-light text-muted"}`}
-                          onClick={() => toggleBloqueo(hora, turno)}
-                          title={
-                            esBloqueo
-                              ? "Desbloquear horario"
-                              : "Bloquear horario"
-                          }
-                        >
-                          {esBloqueo ? (
-                            <Lock size={16} className="text-white" />
-                          ) : (
-                            <Unlock size={16} />
-                          )}
-                        </button>
-
-                        {turno && (
-                          <button
-                            className="btn btn-sm btn-light text-danger rounded-3 border-0"
-                            onClick={() => handleEliminar(turno.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
+                      <div className="d-flex align-items-center gap-2">
+                        <Scissors size={14} className="text-muted" />
+                        <span className="text-muted small">
+                          {turno.servicio}
+                        </span>
+                        <span className="badge bg-light text-dark border ms-2">
+                          ${turno.precio}
+                        </span>
                       </div>
                     </div>
+
+                    <button
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `¿Finalizar turno de ${turno.cliente}? Se registrará como cliente.`,
+                          )
+                        ) {
+                          onEliminarTurno(turno);
+                        }
+                      }}
+                      className="btn btn-light text-danger rounded-circle p-2 hover-shadow"
+                    >
+                      <Trash2 size={20} />
+                    </button>
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          ))
+        ) : (
+          <div className="col-12">
+            <div className="bg-white rounded-5 p-5 text-center border-2 border-dashed">
+              <div className="opacity-25 mb-3">
+                <CalendarIcon size={60} />
+              </div>
+              <h5 className="text-muted">No hay turnos programados para hoy</h5>
+              <p className="text-muted small">
+                Los nuevos turnos aparecerán aquí automáticamente
+              </p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {turnos.filter((t) => t.fecha > hoy).length > 0 && (
+        <div className="mt-5">
+          <h5 className="fw-bold text-dark mb-4">Próximos Días</h5>
+          <div className="table-responsive bg-white rounded-4 shadow-sm border">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="bg-light">
+                <tr>
+                  <th className="px-4 py-3 border-0 small text-muted">FECHA</th>
+                  <th className="py-3 border-0 small text-muted">HORA</th>
+                  <th className="py-3 border-0 small text-muted">CLIENTE</th>
+                  <th className="py-3 border-0 small text-muted">SERVICIO</th>
+                  <th className="py-3 border-0 small text-muted text-end px-4">
+                    ACCIONES
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {turnos
+                  .filter((t) => t.fecha > hoy)
+                  .sort((a, b) => a.fecha.localeCompare(b.fecha))
+                  .map((t) => (
+                    <tr key={t.id}>
+                      <td className="px-4 fw-medium small">{t.fecha}</td>
+                      <td className="small">{t.hora}</td>
+                      <td className="fw-bold small text-capitalize">
+                        {t.cliente}
+                      </td>
+                      <td>
+                        <span className="badge bg-primary bg-opacity-10 text-primary">
+                          {t.servicio}
+                        </span>
+                      </td>
+                      <td className="text-end px-4">
+                        <button
+                          onClick={() => onEliminarTurno(t)}
+                          className="btn btn-sm text-danger"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,9 +2,10 @@
 
 :root {
   --primary-color: #3b82f6;
-  --dark-bg: #0f172a;
+  --dark-bg: #020617;
   --light-bg: #f1f5f9;
-  --text-main: #1e293b;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 body,
@@ -16,32 +17,23 @@ html,
   min-height: 100vh;
   font-family: "Inter", sans-serif;
   background-color: var(--light-bg);
+  overflow-x: hidden;
 }
 
 .portal-card {
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid var(--glass-border) !important;
   cursor: pointer;
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(10px);
+  background-color: var(--glass-bg) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .portal-card:hover {
-  background-color: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
   transform: translateY(-8px);
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-}
-
-.service-card-public {
-  transition: all 0.2s ease;
-  border: 1px solid #e2e8f0 !important;
-}
-
-.service-card-public:hover {
-  background-color: #f8fafc !important;
-  border-color: var(--primary-color) !important;
-  transform: scale(1.01);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
 }
 
 @keyframes fadeIn {
@@ -67,14 +59,19 @@ html,
   animation: fadeIn 0.5s ease-out forwards;
 }
 .animate-fade-up {
-  animation: fadeUp 0.5s ease-out forwards;
+  animation: fadeUp 0.6s ease-out forwards;
 }
 
-.cursor-pointer {
-  cursor: pointer;
-}
-.shadow-primary {
-  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+@media (max-width: 768px) {
+  .display-5 {
+    font-size: 2.2rem !important;
+  }
+  .container.position-relative.z-1 {
+    padding: 0 10px;
+  }
+  .portal-card {
+    padding: 1.25rem !important;
+  }
 }
 
 ::-webkit-scrollbar {

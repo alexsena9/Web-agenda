@@ -25,6 +25,7 @@ import {
   addDoc,
   doc,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 
 function App() {
@@ -34,19 +35,14 @@ function App() {
   );
   const [view, setView] = useState("dashboard");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [turnos, setTurnos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [servicios, setServicios] = useState([]);
   const [horarios, setHorarios] = useState({ inicio: 9, fin: 19 });
 
   useEffect(() => {
-    const manejarCambioRuta = () => {
-      setRuta(window.location.pathname);
-    };
-
+    const manejarCambioRuta = () => setRuta(window.location.pathname);
     window.addEventListener("popstate", manejarCambioRuta);
-
     return () => window.removeEventListener("popstate", manejarCambioRuta);
   }, []);
 
@@ -81,8 +77,25 @@ function App() {
 
   const handleAddTurno = async (nuevoTurno) => {
     try {
-      const { id, ...dataParaSubir } = nuevoTurno;
-      await addDoc(collection(db, "turnos"), dataParaSubir);
+      await addDoc(collection(db, "turnos"), nuevoTurno);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleEliminarTurno = async (turno) => {
+    try {
+      const existe = clientes.some(
+        (c) => c.nombre.toLowerCase() === turno.cliente.toLowerCase(),
+      );
+      if (!existe && turno.cliente) {
+        await addDoc(collection(db, "clientes"), {
+          nombre: turno.cliente,
+          fechaRegistro: new Date().toISOString(),
+          totalVisitas: 1,
+        });
+      }
+      await deleteDoc(doc(db, "turnos", turno.id));
     } catch (error) {
       console.error(error);
     }
@@ -94,14 +107,14 @@ function App() {
       style={{ zIndex: 0, overflow: "hidden" }}
     >
       <div
-        className="d-flex flex-wrap gap-5 p-5"
+        className="d-flex flex-wrap gap-4 gap-md-5 p-3 p-md-5"
         style={{ transform: "rotate(-15deg) scale(1.2)" }}
       >
-        {[...Array(120)].map((_, i) => {
+        {[...Array(60)].map((_, i) => {
           const icons = [Scissors, Wind, Smile, Smartphone];
           const Icon = icons[i % icons.length];
           return (
-            <Icon key={i} size={40} className="text-white" strokeWidth={1} />
+            <Icon key={i} size={30} className="text-white" strokeWidth={1} />
           );
         })}
       </div>
@@ -111,68 +124,59 @@ function App() {
   if (ruta === "/") {
     return (
       <div
-        className="vh-100 vw-100 d-flex align-items-center justify-content-center position-relative overflow-hidden"
+        className="min-vh-100 vw-100 d-flex align-items-center justify-content-center position-relative overflow-hidden"
         style={{ backgroundColor: "#020617" }}
       >
         <BarberPattern />
-        <div
-          className="container position-relative z-1 py-5 px-4 rounded-5 animate-fade-in"
-          style={{
-            maxWidth: "900px",
-            background: "rgba(255, 255, 255, 0.03)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-          }}
-        >
-          <div className="text-center mb-5">
-            <div
-              className="bg-primary p-4 rounded-circle d-inline-flex shadow-lg mb-4"
-              style={{ boxShadow: "0 0 40px rgba(13, 110, 253, 0.5)" }}
-            >
-              <Scissors size={50} className="text-white" strokeWidth={2.5} />
+        <div className="container position-relative z-1 py-4 px-3">
+          <div
+            className="mx-auto p-4 p-md-5 rounded-5 animate-fade-up"
+            style={{
+              maxWidth: "800px",
+              background: "rgba(255, 255, 255, 0.03)",
+              backdropFilter: "blur(15px)",
+              WebkitBackdropFilter: "blur(15px)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            <div className="text-center mb-4 mb-md-5">
+              <div className="bg-primary p-3 p-md-4 rounded-circle d-inline-flex shadow-lg mb-3">
+                <Scissors size={35} className="text-white" strokeWidth={2.5} />
+              </div>
+              <h1 className="display-5 fw-bold text-white mb-2">
+                Barbería App
+              </h1>
+              <p className="text-white opacity-75">
+                Reserva tu cita o gestiona tu negocio
+              </p>
             </div>
-            <h1 className="display-3 fw-bold text-white mb-2">
-              Agenda Barbería
-            </h1>
-            <p className="text-white fs-5 opacity-75">
-              Gestión profesional de citas
-            </p>
-          </div>
-          <div className="row g-4 justify-content-center">
-            <div className="col-12 col-md-6">
-              <div
-                onClick={() => navegar("/reservar")}
-                className="card portal-card border-0 rounded-4 p-4 h-100 text-start shadow-sm"
-                style={{
-                  background: "rgba(255, 255, 255, 0.05)",
-                  cursor: "pointer",
-                }}
-              >
-                <div className="bg-success p-3 rounded-3 d-inline-block mb-3">
-                  <User size={28} className="text-white" />
-                </div>
-                <h3 className="fw-bold text-white mb-2">Reservar Turno</h3>
-                <div className="mt-auto d-flex align-items-center gap-2 fw-bold text-success">
-                  Reservar ahora <ArrowRight size={18} />
+            <div className="row g-3">
+              <div className="col-12 col-md-6">
+                <div
+                  onClick={() => navegar("/reservar")}
+                  className="card portal-card border-0 rounded-4 p-4 h-100 text-start"
+                >
+                  <div className="bg-success p-3 rounded-3 d-inline-block mb-3">
+                    <User size={24} className="text-white" />
+                  </div>
+                  <h4 className="fw-bold text-white mb-2">Reservar</h4>
+                  <div className="mt-auto text-success fw-bold">
+                    Empezar <ArrowRight size={18} />
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="col-12 col-md-6">
-              <div
-                onClick={() => navegar("/admin")}
-                className="card portal-card border-0 rounded-4 p-4 h-100 text-start shadow-sm"
-                style={{
-                  background: "rgba(255, 255, 255, 0.05)",
-                  cursor: "pointer",
-                }}
-              >
-                <div className="bg-primary p-3 rounded-3 d-inline-block mb-3">
-                  <Settings size={28} className="text-white" />
-                </div>
-                <h3 className="fw-bold text-white mb-2">Panel Admin</h3>
-                <div className="mt-auto d-flex align-items-center gap-2 fw-bold text-primary">
-                  Acceder al panel <ArrowRight size={18} />
+              <div className="col-12 col-md-6">
+                <div
+                  onClick={() => navegar("/admin")}
+                  className="card portal-card border-0 rounded-4 p-4 h-100 text-start"
+                >
+                  <div className="bg-primary p-3 rounded-3 d-inline-block mb-3">
+                    <Settings size={24} className="text-white" />
+                  </div>
+                  <h4 className="fw-bold text-white mb-2">Administrar</h4>
+                  <div className="mt-auto text-primary fw-bold">
+                    Entrar <ArrowRight size={18} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -182,7 +186,7 @@ function App() {
     );
   }
 
-  if (ruta === "/reservar") {
+  if (ruta === "/reservar")
     return (
       <VistaPublica
         turnos={turnos}
@@ -191,19 +195,16 @@ function App() {
         onAddTurno={handleAddTurno}
       />
     );
-  }
 
-  if (ruta === "/admin" && !isAuthenticated) {
+  if (ruta === "/admin" && !isAuthenticated)
     return (
       <Login
         onLogin={() => {
           setIsAuthenticated(true);
-          sessionStorage.setItem("isAuth", "true");
           navegar("/admin");
         }}
       />
     );
-  }
 
   const renderView = () => {
     switch (view) {
@@ -216,7 +217,13 @@ function App() {
           />
         );
       case "agenda":
-        return <Agenda turnos={turnos} horarios={horarios} />;
+        return (
+          <Agenda
+            turnos={turnos}
+            horarios={horarios}
+            onEliminarTurno={handleEliminarTurno}
+          />
+        );
       case "clientes":
         return <Clientes clientes={clientes} />;
       case "config":
@@ -232,7 +239,6 @@ function App() {
             }
             onLogout={() => {
               setIsAuthenticated(false);
-              sessionStorage.removeItem("isAuth");
               navegar("/");
             }}
           />
@@ -249,11 +255,7 @@ function App() {
         setView={setView}
         onNewTurn={() => setIsModalOpen(true)}
       />
-      <main className="flex-grow-1 p-3 p-md-5">
-        <div className="container-fluid" style={{ maxWidth: "1200px" }}>
-          {renderView()}
-        </div>
-      </main>
+      <main className="flex-grow-1 p-3 p-md-4">{renderView()}</main>
       <NuevoTurnoModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
