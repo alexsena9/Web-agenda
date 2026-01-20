@@ -10,10 +10,12 @@ import {
   Calendar as CalendarIcon,
   Lock,
 } from "lucide-react";
+import { db } from "../firebase";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 
-const Agenda = ({ turnos, setTurnos, horarios }) => {
+const Agenda = ({ turnos, horarios }) => {
   const [fechaReferencia, setFechaReferencia] = useState(new Date());
-  const [modoVista, setModoVista] = useState("semana"); // 'semana' o 'dia'
+  const [modoVista, setModoVista] = useState("semana");
 
   const wsLogo =
     "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg";
@@ -31,22 +33,24 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
     window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, "_blank");
   };
 
-  const toggleCompletado = (id) => {
-    setTurnos(
-      turnos.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              estado: t.estado === "Completado" ? "Pendiente" : "Completado",
-            }
-          : t,
-      ),
-    );
+  const toggleCompletado = async (id, estadoActual) => {
+    try {
+      const turnoRef = doc(db, "turnos", id);
+      await updateDoc(turnoRef, {
+        estado: estadoActual === "Completado" ? "Pendiente" : "Completado",
+      });
+    } catch (error) {
+      console.error("Error al actualizar estado:", error);
+    }
   };
 
-  const eliminarTurno = (id) => {
+  const eliminarTurno = async (id) => {
     if (window.confirm("¿Deseas eliminar este registro (Cita o Bloqueo)?")) {
-      setTurnos(turnos.filter((t) => t.id !== id));
+      try {
+        await deleteDoc(doc(db, "turnos", id));
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+      }
     }
   };
 
@@ -65,6 +69,7 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(d.setDate(diff));
   };
+
   const lunesActual = getLunes(fechaReferencia);
   const semana = Array.from({ length: 5 }, (_, i) => {
     const d = new Date(lunesActual);
@@ -178,7 +183,9 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
                             className="hover-scale"
                           />
                           <button
-                            onClick={() => toggleCompletado(turno.id)}
+                            onClick={() =>
+                              toggleCompletado(turno.id, turno.estado)
+                            }
                             className="btn btn-link p-0 text-primary border-0"
                           >
                             {turno.estado === "Completado" ? (
@@ -284,7 +291,9 @@ const Agenda = ({ turnos, setTurnos, horarios }) => {
                                 <div className="mt-auto d-flex justify-content-between align-items-center">
                                   <div className="d-flex gap-2 align-items-center">
                                     <button
-                                      onClick={() => toggleCompletado(turno.id)}
+                                      onClick={() =>
+                                        toggleCompletado(turno.id, turno.estado)
+                                      }
                                       className="btn btn-link p-0 border-0"
                                     >
                                       {turno.estado === "Completado" ? (
