@@ -36,5 +36,5 @@ La aplicación se adapta automáticamente:
 
 1. Clona el repositorio:
    ```bash
-   git clone [https://github.com/](https://github.com/)[alexsena9]/Web-agenda.git
+   git clone [https://github.com/](https://github.com/)[alexsena9]/Web-agenda.git](https://github.com/alexsena9/Web-agenda.git)
    ```
