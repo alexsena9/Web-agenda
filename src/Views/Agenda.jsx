@@ -1,18 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  User,
   MessageSquare,
   Trash2,
   Check,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { db } from "../firebase";
-import { doc, deleteDoc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  deleteDoc,
+  updateDoc,
+  addDoc,
+  collection,
+} from "firebase/firestore";
 
 const Agenda = ({ turnos, horarios }) => {
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(
+  const [fechaSeleccionada, setFechaSeleccionada] = React.useState(
     new Date().toISOString().split("T")[0],
   );
 
@@ -23,7 +30,7 @@ const Agenda = ({ turnos, horarios }) => {
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de eliminar este turno?")) {
+    if (window.confirm("¿Estás seguro de eliminar este registro?")) {
       try {
         await deleteDoc(doc(db, "turnos", id));
       } catch (error) {
@@ -42,6 +49,26 @@ const Agenda = ({ turnos, horarios }) => {
     }
   };
 
+  const toggleBloqueo = async (hora, turnoExistente) => {
+    if (turnoExistente) {
+      if (turnoExistente.estado === "Bloqueado") {
+        await deleteDoc(doc(db, "turnos", turnoExistente.id));
+      }
+    } else {
+      try {
+        await addDoc(collection(db, "turnos"), {
+          cliente: "HORARIO BLOQUEADO",
+          servicio: "Descanso / Personal",
+          fecha: fechaSeleccionada,
+          hora: hora,
+          estado: "Bloqueado",
+        });
+      } catch (error) {
+        console.error("Error al bloquear:", error);
+      }
+    }
+  };
+
   const horas = [];
   for (let i = horarios.inicio; i <= horarios.fin; i++) {
     horas.push(`${i.toString().padStart(2, "0")}:00`);
@@ -53,7 +80,7 @@ const Agenda = ({ turnos, horarios }) => {
         <div>
           <h2 className="fw-bold text-dark mb-1">Agenda Diaria</h2>
           <p className="text-muted mb-0">
-            Gestiona tus citas y horarios bloqueados
+            Gestiona tus citas y bloqueos rápidos
           </p>
         </div>
         <div className="d-flex align-items-center bg-white border rounded-3 p-1 shadow-sm">
@@ -85,11 +112,12 @@ const Agenda = ({ turnos, horarios }) => {
             const turno = turnos.find(
               (t) => t.fecha === fechaSeleccionada && t.hora === hora,
             );
+            const esBloqueo = turno?.estado === "Bloqueado";
 
             return (
               <div
                 key={hora}
-                className={`list-group-item p-3 ${turno?.estado === "Bloqueado" ? "bg-light opacity-75" : ""}`}
+                className={`list-group-item p-3 transition-all ${esBloqueo ? "bg-danger bg-opacity-10" : ""}`}
               >
                 <div className="row align-items-center">
                   <div className="col-auto">
@@ -103,48 +131,69 @@ const Agenda = ({ turnos, horarios }) => {
                   </div>
 
                   <div className="col">
-                    {turno ? (
-                      <div className="d-flex align-items-center justify-content-between">
-                        <div>
-                          <h6
-                            className={`mb-0 fw-bold ${turno.estado === "Completado" ? "text-decoration-line-through text-muted" : "text-dark"}`}
-                          >
-                            {turno.cliente}
-                          </h6>
-                          <small className="text-muted d-block">
-                            {turno.servicio}
-                          </small>
-                        </div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div>
+                        {turno ? (
+                          <>
+                            <h6
+                              className={`mb-0 fw-bold ${turno.estado === "Completado" ? "text-decoration-line-through text-muted" : esBloqueo ? "text-danger" : "text-dark"}`}
+                            >
+                              {turno.cliente}
+                            </h6>
+                            <small className="text-muted d-block">
+                              {turno.servicio}
+                            </small>
+                          </>
+                        ) : (
+                          <span className="text-muted small fst-italic">
+                            Disponible para citas
+                          </span>
+                        )}
+                      </div>
 
-                        <div className="d-flex gap-2">
-                          {turno.estado !== "Bloqueado" && (
-                            <>
-                              <button
-                                className={`btn btn-sm rounded-3 border-0 ${turno.estado === "Completado" ? "btn-success" : "btn-light text-muted"}`}
-                                onClick={() =>
-                                  handleCompletar(turno.id, turno.estado)
-                                }
-                              >
-                                <Check size={16} />
-                              </button>
-                              <button className="btn btn-sm btn-light text-primary rounded-3 border-0">
-                                <MessageSquare size={16} />
-                              </button>
-                            </>
+                      <div className="d-flex gap-2">
+                        {turno && !esBloqueo && (
+                          <>
+                            <button
+                              className={`btn btn-sm rounded-3 border-0 ${turno.estado === "Completado" ? "btn-success" : "btn-light text-muted"}`}
+                              onClick={() =>
+                                handleCompletar(turno.id, turno.estado)
+                              }
+                            >
+                              <Check size={16} />
+                            </button>
+                            <button className="btn btn-sm btn-light text-primary rounded-3 border-0">
+                              <MessageSquare size={16} />
+                            </button>
+                          </>
+                        )}
+
+                        <button
+                          className={`btn btn-sm rounded-3 border-0 ${esBloqueo ? "btn-danger shadow-sm" : "btn-light text-muted"}`}
+                          onClick={() => toggleBloqueo(hora, turno)}
+                          title={
+                            esBloqueo
+                              ? "Desbloquear horario"
+                              : "Bloquear horario"
+                          }
+                        >
+                          {esBloqueo ? (
+                            <Lock size={16} className="text-white" />
+                          ) : (
+                            <Unlock size={16} />
                           )}
+                        </button>
+
+                        {turno && (
                           <button
                             className="btn btn-sm btn-light text-danger rounded-3 border-0"
                             onClick={() => handleEliminar(turno.id)}
                           >
                             <Trash2 size={16} />
                           </button>
-                        </div>
+                        )}
                       </div>
-                    ) : (
-                      <span className="text-muted small italic">
-                        Disponible
-                      </span>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
