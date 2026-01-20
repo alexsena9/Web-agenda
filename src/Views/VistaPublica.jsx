@@ -34,9 +34,9 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
   };
 
   return (
-    <div className="min-vh-100 bg-light p-3 p-md-5">
-      <div className="mx-auto" style={{ maxWidth: "500px" }}>
-        <div className="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div className="min-vh-100 bg-light d-flex align-items-center justify-content-center p-3">
+      <div className="w-100" style={{ maxWidth: "450px" }}>
+        <div className="card border-0 shadow-lg rounded-4 overflow-hidden animate-fade-up">
           {paso < 4 && (
             <div className="bg-primary p-4 text-white text-center">
               <h4 className="fw-bold mb-1">Reserva tu Turno</h4>
