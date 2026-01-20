@@ -49,6 +49,11 @@ const Agenda = ({ turnos, horarios }) => {
     }
   };
 
+  const contactarWhatsApp = (nombre, fecha, hora) => {
+    const mensaje = `Hola ${nombre}, te escribo de la barbería para recordarte tu turno el día ${fecha} a las ${hora}.`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, "_blank");
+  };
+
   const toggleBloqueo = async (hora, turnoExistente) => {
     if (turnoExistente) {
       if (turnoExistente.estado === "Bloqueado") {
@@ -75,7 +80,7 @@ const Agenda = ({ turnos, horarios }) => {
   }
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in text-start">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
           <h2 className="fw-bold text-dark mb-1">Agenda Diaria</h2>
@@ -141,7 +146,8 @@ const Agenda = ({ turnos, horarios }) => {
                               {turno.cliente}
                             </h6>
                             <small className="text-muted d-block">
-                              {turno.servicio}
+                              {turno.servicio}{" "}
+                              {turno.precio ? `($${turno.precio})` : ""}
                             </small>
                           </>
                         ) : (
@@ -155,6 +161,7 @@ const Agenda = ({ turnos, horarios }) => {
                         {turno && !esBloqueo && (
                           <>
                             <button
+                              title="Marcar como completado"
                               className={`btn btn-sm rounded-3 border-0 ${turno.estado === "Completado" ? "btn-success" : "btn-light text-muted"}`}
                               onClick={() =>
                                 handleCompletar(turno.id, turno.estado)
@@ -162,7 +169,18 @@ const Agenda = ({ turnos, horarios }) => {
                             >
                               <Check size={16} />
                             </button>
-                            <button className="btn btn-sm btn-light text-primary rounded-3 border-0">
+
+                            <button
+                              title="Enviar recordatorio"
+                              onClick={() =>
+                                contactarWhatsApp(
+                                  turno.cliente,
+                                  turno.fecha,
+                                  turno.hora,
+                                )
+                              }
+                              className="btn btn-sm btn-light text-primary rounded-3 border-0"
+                            >
                               <MessageSquare size={16} />
                             </button>
                           </>
