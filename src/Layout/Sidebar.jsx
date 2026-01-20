@@ -44,10 +44,16 @@ const Sidebar = ({ view, setView, onNewTurn }) => {
             <Scissors className="text-white" size={24} />
           </div>
           <h5
-            className="fw-bold mb-0 tracking-tight"
-            style={{ color: "#1e293b" }}
+            className="fw-bold mb-0 text-dark"
+            style={{
+              fontSize: "1.1rem",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              letterSpacing: "-0.5px",
+            }}
           >
-            AgendaProBarbería
+            Agenda Barbería
           </h5>
         </div>
 

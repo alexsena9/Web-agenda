@@ -156,7 +156,7 @@ function App() {
               <Scissors size={48} className="text-white" />
             </div>
             <h1 className="text-white fw-bold display-3 mb-2 tracking-tighter">
-              AgendaPro
+              AgendaProBarbería
             </h1>
             <p className="text-muted fs-5">
               La evolución de tu barbería comienza aquí
