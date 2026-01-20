@@ -8,7 +8,7 @@ const Login = ({ onLogin }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (user === "Admin" && pass === "12345") {
+    if (user === "admin" && pass === "1234") {
       onLogin();
     } else {
       setError(true);
