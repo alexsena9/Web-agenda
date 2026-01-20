@@ -15,10 +15,13 @@ const Dashboard = ({ turnos, setView, onNewTurn }) => {
   const hoy = new Date().toISOString().split("T")[0];
 
   const turnosHoy = turnos.filter((t) => t.fecha === hoy);
+
   const completadosHoy = turnosHoy.filter(
     (t) => t.estado === "Completado",
   ).length;
+
   const pendientesHoy = turnosHoy.length - completadosHoy;
+
   const progresoHoy =
     turnosHoy.length > 0 ? (completadosHoy / turnosHoy.length) * 100 : 0;
 
@@ -27,6 +30,7 @@ const Dashboard = ({ turnos, setView, onNewTurn }) => {
     minute: "2-digit",
     hour12: false,
   });
+
   const proximoTurno = turnosHoy
     .filter((t) => t.estado !== "Completado" && t.hora >= horaActual)
     .sort((a, b) => a.hora.localeCompare(b.hora))[0];
@@ -175,7 +179,6 @@ const Dashboard = ({ turnos, setView, onNewTurn }) => {
         </div>
       </div>
 
-      {/* SECCIÓN 4: LISTA RÁPIDA DE HOY */}
       <div className="row">
         <div className="col-12">
           <div className="card border-0 shadow-sm rounded-4 p-4">
