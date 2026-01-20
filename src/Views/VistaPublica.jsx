@@ -24,6 +24,7 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
     const lista = [];
     for (let i = horarios.inicio; i <= horarios.fin; i++) {
       const h = `${i.toString().padStart(2, "0")}:00`;
+
       if (!turnos.find((t) => t.fecha === fecha && t.hora === h)) {
         lista.push(h);
       }
@@ -34,7 +35,10 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
   const handleConfirmar = (e) => {
     e.preventDefault();
     if (reserva.cliente && reserva.fecha && reserva.hora) {
-      onAddTurno({ ...reserva, id: Date.now(), estado: "Pendiente" });
+      onAddTurno({
+        ...reserva,
+        estado: "Pendiente",
+      });
       setExito(true);
     }
   };

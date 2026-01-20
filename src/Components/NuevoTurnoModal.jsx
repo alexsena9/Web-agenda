@@ -26,6 +26,7 @@ const NuevoTurnoModal = ({
     const existe = turnos.find(
       (t) => t.fecha === formData.fecha && t.hora === formData.hora,
     );
+
     if (existe) {
       setError(`Este horario ya está ocupado por ${existe.cliente}.`);
       return;
@@ -33,7 +34,6 @@ const NuevoTurnoModal = ({
 
     const dataAEnviar = isBlocking
       ? {
-          id: Date.now(),
           cliente: "HORARIO BLOQUEADO",
           servicio: "Descanso / Personal",
           fecha: formData.fecha,
@@ -42,7 +42,6 @@ const NuevoTurnoModal = ({
         }
       : {
           ...formData,
-          id: Date.now(),
           estado: "Pendiente",
         };
 
@@ -50,7 +49,7 @@ const NuevoTurnoModal = ({
 
     setFormData({
       cliente: "",
-      servicio: servicios[0],
+      servicio: servicios[0] || "",
       fecha: "",
       hora: "",
       notas: "",
