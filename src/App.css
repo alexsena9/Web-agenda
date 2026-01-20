@@ -1,79 +1,98 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
-html,
-body {
-  background-color: #f8fafc;
-  font-family: "Inter", sans-serif;
-  color: #1e293b;
-  margin: 0;
-  overflow-x: hidden;
-  max-width: 100%;
+:root {
+  --primary-color: #3b82f6;
+  --dark-bg: #0f172a;
+  --light-bg: #f8fafc;
+  --text-main: #1e293b;
 }
 
-.transition-all {
-  transition: all 0.2s ease-in-out;
+body {
+  font-family: "Inter", sans-serif !important;
+  letter-spacing: -0.01em;
+  background-color: var(--light-bg);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.portal-card {
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+.portal-card:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  transform: translateY(-8px);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.portal-card h3,
+.portal-card p,
+.portal-card div {
+  color: #ffffff !important;
+}
+
+.service-card-public {
+  transition: background-color 0.2s ease;
+  border: 2px solid #f1f5f9 !important;
+}
+
+.service-card-public:hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  border-color: #dee2e6 !important;
+}
+
+.service-card-public span {
+  color: var(--text-main) !important;
+}
+
+.btn-hora-public {
+  transition: all 0.2s ease;
+  color: var(--text-main) !important;
+  background-color: #ffffff;
+}
+
+.btn-hora-public:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--text-main) !important;
+}
+
+.btn-hora-public.btn-primary {
+  background-color: var(--primary-color) !important;
+  color: #ffffff !important;
+  border-color: var(--primary-color) !important;
 }
 
 .hover-bg-light:hover {
   background-color: #f1f5f9;
-  color: #2563eb !important;
+  color: var(--text-main) !important;
 }
 
-.view-animate {
-  animation: fadeIn 0.4s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
+@media (max-width: 991.98px) {
+  main {
+    padding-bottom: 90px !important;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.calendar-slot {
-  border: 0.5px solid #f1f5f9;
-  transition: background-color 0.1s;
-}
-
-.calendar-slot:hover {
-  background-color: #f8fafc;
-}
-
-.bg-primary-subtle {
-  background-color: #e0f2fe !important;
-}
-.bg-warning-subtle {
-  background-color: #fef3c7 !important;
-}
-.bg-success-subtle {
-  background-color: #dcfce7 !important;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal-content-custom {
-  width: 100%;
-  max-width: 450px;
-  border: 1px solid #e2e8f0;
 }
 
 .animate-fade-up {
-  animation: modalFadeUp 0.3s ease-out;
+  animation: fadeUp 0.5s ease forwards;
 }
 
-@keyframes modalFadeUp {
+.animate-fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+
+@keyframes fadeUp {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -84,161 +103,13 @@ body {
   }
 }
 
-.progress-bar {
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card {
-  transition: transform 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-}
-
-.calendar-slot {
-  transition: background-color 0.2s ease;
-}
-
-.calendar-slot:hover {
-  background-color: rgba(0, 0, 0, 0.01);
-}
-
-.animate-fade-up {
-  animation: fadeUp 0.3s ease-out forwards;
-}
-
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
-body {
-  font-family: "Inter", sans-serif;
-  letter-spacing: -0.02em;
-}
-
-@keyframes fadeUp {
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
-}
-
-.transition-all {
-  transition: all 0.3s ease;
-}
-
-.modal-content-custom {
-  width: 95% !important;
-  max-width: 500px;
-}
-
-.table-responsive {
-  border-radius: 12px;
-  -webkit-overflow-scrolling: touch;
-}
-
-@media (max-width: 991px) {
-  .view-animate {
-    padding-bottom: 60px;
-  }
-}
-
-#root {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-.container-fluid {
-  padding-left: 10px !important;
-  padding-right: 10px !important;
-}
-
-.table-responsive {
-  display: block;
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-5px);
-  }
-  75% {
-    transform: translateX(5px);
-  }
-}
-.animate-shake {
-  animation: shake 0.3s ease-in-out;
-}
-
-.card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-hover:hover {
-  transform: translateY(-5px);
-  shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
-
-.btn-whatsapp-float {
-  animation: pulse-green 2s infinite;
-}
-
-@keyframes pulse-green {
-  0% {
-    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
-  }
-}
-
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-
-:root {
-  --primary-color: #3b82f6;
-}
-
-body {
-  font-family: "Inter", sans-serif !important;
-  letter-spacing: -0.01em;
-  background-color: #f8fafc;
-  color: #1e293b;
-}
-
-@media (max-width: 991.98px) {
-  main {
-    padding-bottom: 80px !important;
-  }
-}
-
-.transition-all {
-  transition: all 0.2s ease-in-out;
-}
-
-.hover-bg-light:hover {
-  background-color: #f1f5f9;
-  color: #0f172a !important;
-}
-
-.hover-scale:hover {
-  transform: scale(1.02);
-}
-
-.shadow-primary {
-  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
 }
 
 @keyframes bounce {
@@ -247,17 +118,49 @@ body {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-3px);
+    transform: translateY(-10px);
   }
 }
-.animate-bounce {
-  animation: bounce 0.5s ease;
+
+.shadow-primary {
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
 }
 
-.table-responsive::-webkit-scrollbar {
-  height: 4px;
+.cursor-pointer {
+  cursor: pointer;
 }
-.table-responsive::-webkit-scrollbar-thumb {
+
+.vw-100 {
+  width: 100vw;
+}
+.vh-100 {
+  height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+input[type="date"],
+input[type="time"] {
+  color: var(--text-main);
+  outline: none;
+}
+
+.transition-all {
+  transition: all 0.3s ease;
 }
