@@ -67,14 +67,17 @@ const Configuracion = ({
   };
 
   const sugerenciasClientes =
-    busquedaCliente.length > 1
-      ? clientes.filter((c) =>
-          c.nombre.toLowerCase().includes(busquedaCliente.toLowerCase()),
-        )
+    busquedaCliente.length > 1 && Array.isArray(clientes)
+      ? clientes.filter((c) => {
+          return (
+            c?.nombre &&
+            c.nombre.toLowerCase().includes(busquedaCliente.toLowerCase())
+          );
+        })
       : [];
 
   return (
-    <div className="animate-fade-in pb-5">
+    <div className="animate-fade-in pb-5 text-start">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="fw-bold text-dark mb-1">Configuración</h2>
@@ -178,20 +181,26 @@ const Configuracion = ({
                 onChange={(e) => setBusquedaCliente(e.target.value)}
               />
             </div>
-            {sugerenciasClientes.map((c) => (
-              <div
-                key={c.id}
-                className="d-flex justify-content-between align-items-center p-2 border-bottom"
-              >
-                <span className="small fw-bold">{c.nombre}</span>
-                <button
-                  onClick={() => handleEliminarClientePorNombre(c.id)}
-                  className="btn btn-sm btn-outline-danger border-0"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+            {sugerenciasClientes.length > 0
+              ? sugerenciasClientes.map((c) => (
+                  <div
+                    key={c.id}
+                    className="d-flex justify-content-between align-items-center p-2 border-bottom"
+                  >
+                    <span className="small fw-bold">{c.nombre}</span>
+                    <button
+                      onClick={() => handleEliminarClientePorNombre(c.id)}
+                      className="btn btn-sm btn-outline-danger border-0"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))
+              : busquedaCliente.length > 1 && (
+                  <div className="text-center p-3 text-muted small">
+                    No se encontraron resultados
+                  </div>
+                )}
           </div>
         </div>
 
@@ -216,7 +225,7 @@ const Configuracion = ({
                 >
                   {[...Array(24)].map((_, i) => (
                     <option key={i} value={i}>
-                      {i}:00
+                      {i.toString().padStart(2, "0")}:00
                     </option>
                   ))}
                 </select>
@@ -232,7 +241,7 @@ const Configuracion = ({
                 >
                   {[...Array(24)].map((_, i) => (
                     <option key={i} value={i}>
-                      {i}:00
+                      {i.toString().padStart(2, "0")}:00
                     </option>
                   ))}
                 </select>
