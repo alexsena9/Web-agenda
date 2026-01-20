@@ -88,7 +88,6 @@ function App() {
     }
   };
 
-  // Componente de Fondo
   const BarberPattern = () => (
     <div
       className="position-fixed top-0 start-0 w-100 h-100 opacity-[0.05] pointer-events-none"
@@ -133,7 +132,9 @@ function App() {
             >
               <Scissors size={50} className="text-white" strokeWidth={2.5} />
             </div>
-            <h1 className="display-3 fw-bold text-white mb-2">Barbería App</h1>
+            <h1 className="display-3 fw-bold text-white mb-2">
+              Agenda Barbería
+            </h1>
             <p className="text-white fs-5 opacity-75">
               Gestión profesional de citas
             </p>
