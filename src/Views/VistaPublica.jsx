@@ -6,7 +6,6 @@ import {
   User,
   CheckCircle2,
   ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 
 const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
@@ -34,24 +33,52 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
   };
 
   return (
-    <div className="min-vh-100 bg-light d-flex align-items-center justify-content-center p-3">
-      <div className="w-100" style={{ maxWidth: "450px" }}>
-        <div className="card border-0 shadow-lg rounded-4 overflow-hidden animate-fade-up">
+    <div
+      className="min-vh-100 d-flex align-items-center justify-content-center p-3"
+      style={{
+        background: "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)",
+        fontFamily: "'Inter', sans-serif",
+      }}
+    >
+      <div className="w-100" style={{ maxWidth: "480px" }}>
+        <div
+          className="card border-0 shadow-lg rounded-4 overflow-hidden animate-fade-up"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+          }}
+        >
           {paso < 4 && (
-            <div className="bg-primary p-4 text-white text-center">
-              <h4 className="fw-bold mb-1">Reserva tu Turno</h4>
-              <p className="small opacity-75 mb-0">Paso {paso} de 3</p>
+            <div className="bg-primary p-4 text-white text-center shadow-sm">
+              <div className="bg-white bg-opacity-20 rounded-pill d-inline-block p-2 mb-3">
+                <Scissors size={24} />
+              </div>
+              <h4 className="fw-bold mb-1">Agenda tu Cita</h4>
+              <div className="d-flex justify-content-center gap-2 mt-3">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: "35px",
+                      height: "4px",
+                      borderRadius: "2px",
+                      backgroundColor:
+                        paso >= i ? "#fff" : "rgba(255,255,255,0.3)",
+                      transition: "0.3s",
+                    }}
+                  ></div>
+                ))}
+              </div>
             </div>
           )}
 
           <div className="card-body p-4">
             {paso === 1 && (
               <div className="animate-fade-in">
-                <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
-                  <Scissors size={18} className="text-primary" /> Selecciona un
-                  Servicio
+                <h6 className="text-uppercase text-muted fw-bold small mb-3 tracking-wider text-start">
+                  Paso 1: Elige un servicio
                 </h6>
-                <div className="list-group border-0">
+                <div className="d-grid gap-3">
                   {servicios.map((s, i) => (
                     <button
                       key={i}
@@ -59,10 +86,21 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
                         setServicioSeleccionado(s);
                         setPaso(2);
                       }}
-                      className="list-group-item list-group-item-action border rounded-3 mb-2 d-flex justify-content-between align-items-center p-3"
+                      className="btn btn-outline-light border text-start p-3 rounded-4 d-flex justify-content-between align-items-center transition-all hover-shadow"
+                      style={{ borderColor: "#eee" }}
                     >
-                      <span className="fw-bold">{s.nombre}</span>
-                      <span className="badge bg-success bg-opacity-10 text-success fs-6">
+                      <div>
+                        <span className="d-block fw-bold text-dark fs-5">
+                          {s.nombre}
+                        </span>
+                        <span className="text-muted small">
+                          Duración estimada: 45 min
+                        </span>
+                      </div>
+                      <span
+                        className="badge rounded-pill px-3 py-2 fs-6"
+                        style={{ backgroundColor: "#e7f0ff", color: "#007bff" }}
+                      >
                         ${s.precio}
                       </span>
                     </button>
@@ -72,20 +110,33 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
             )}
 
             {paso === 2 && (
-              <div className="animate-fade-in">
+              <div className="animate-fade-in text-start">
                 <button
                   onClick={() => setPaso(1)}
-                  className="btn btn-link text-muted p-0 mb-3 text-decoration-none small d-flex align-items-center gap-1"
+                  className="btn btn-link text-decoration-none text-muted p-0 mb-4 d-flex align-items-center gap-2"
                 >
-                  <ChevronLeft size={14} /> Volver a servicios
+                  <ChevronLeft size={18} />{" "}
+                  <span className="small fw-bold">Volver a servicios</span>
                 </button>
-                <h6 className="fw-bold mb-3">Fecha y Hora</h6>
-                <input
-                  type="date"
-                  className="form-control mb-3 border-0 bg-light py-2"
-                  value={fecha}
-                  onChange={(e) => setFecha(e.target.value)}
-                />
+                <h6 className="text-uppercase text-muted fw-bold small mb-3 tracking-wider">
+                  Paso 2: Fecha y Hora
+                </h6>
+
+                <div className="mb-4">
+                  <label className="form-label small fw-bold">
+                    Selecciona el día
+                  </label>
+                  <input
+                    type="date"
+                    className="form-control form-control-lg border-0 bg-light rounded-3"
+                    value={fecha}
+                    onChange={(e) => setFecha(e.target.value)}
+                  />
+                </div>
+
+                <label className="form-label small fw-bold">
+                  Horarios disponibles
+                </label>
                 <div className="row g-2">
                   {horas.map((h) => {
                     const ocupado = turnos.some(
@@ -99,7 +150,11 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
                             setHoraSeleccionada(h);
                             setPaso(3);
                           }}
-                          className={`btn w-100 py-2 small ${ocupado ? "btn-light opacity-50" : "btn-outline-primary"}`}
+                          className={`btn w-100 py-3 rounded-3 fw-bold transition-all ${
+                            ocupado
+                              ? "btn-light opacity-25"
+                              : "btn-outline-primary"
+                          }`}
                         >
                           {h}
                         </button>
@@ -111,54 +166,94 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
             )}
 
             {paso === 3 && (
-              <div className="animate-fade-in text-center">
-                <h6 className="fw-bold mb-4">Confirma tus datos</h6>
-                <div className="bg-light p-3 rounded-4 mb-4 text-start">
-                  <p className="mb-1 small text-muted">
-                    Servicio: <strong>{servicioSeleccionado.nombre}</strong>
-                  </p>
-                  <p className="mb-1 small text-muted">
-                    Fecha:{" "}
-                    <strong>
-                      {fecha} a las {horaSeleccionada}
-                    </strong>
-                  </p>
-                  <p className="mb-0 text-success fw-bold fs-5">
-                    Total: ${servicioSeleccionado.precio}
-                  </p>
+              <div className="animate-fade-in text-start">
+                <button
+                  onClick={() => setPaso(2)}
+                  className="btn btn-link text-decoration-none text-muted p-0 mb-4 d-flex align-items-center gap-2"
+                >
+                  <ChevronLeft size={18} />{" "}
+                  <span className="small fw-bold">Cambiar horario</span>
+                </button>
+
+                <div
+                  className="p-4 rounded-4 mb-4"
+                  style={{
+                    background: "#f8f9ff",
+                    border: "1px dashed #c2d6ff",
+                  }}
+                >
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-muted">Servicio:</span>
+                    <span className="fw-bold">
+                      {servicioSeleccionado.nombre}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-muted">Fecha:</span>
+                    <span className="fw-bold">{fecha}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-3">
+                    <span className="text-muted">Hora:</span>
+                    <span className="fw-bold">{horaSeleccionada} HS</span>
+                  </div>
+                  <div className="pt-2 border-top d-flex justify-content-between align-items-center">
+                    <span className="fw-bold text-primary">Total:</span>
+                    <span className="fw-bold text-primary fs-4">
+                      ${servicioSeleccionado.precio}
+                    </span>
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  className="form-control form-control-lg border-0 bg-light text-center mb-3"
-                  placeholder="Tu nombre completo"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                />
+
+                <div className="mb-4">
+                  <label className="form-label small fw-bold">
+                    Tu Nombre Completo
+                  </label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-0">
+                      <User size={18} className="text-muted" />
+                    </span>
+                    <input
+                      type="text"
+                      className="form-control form-control-lg bg-light border-0"
+                      placeholder="Ej: Carlos Sánchez"
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <button
                   disabled={!nombre}
                   onClick={handleFinalizar}
-                  className="btn btn-primary btn-lg w-100 rounded-3 shadow"
+                  className="btn btn-primary btn-lg w-100 rounded-4 py-3 fw-bold shadow-lg"
                 >
-                  Confirmar Reserva
+                  Confirmar Cita
                 </button>
               </div>
             )}
 
             {paso === 4 && (
               <div className="text-center py-5 animate-fade-in">
-                <div className="text-success mb-3">
-                  <CheckCircle2 size={64} />
+                <div className="bg-success bg-opacity-10 rounded-circle d-inline-block p-4 mb-4">
+                  <CheckCircle2 size={60} className="text-success" />
                 </div>
-                <h3 className="fw-bold">¡Listo, {nombre}!</h3>
-                <p className="text-muted">
-                  Tu cita para {servicioSeleccionado.nombre} ha sido agendada.
+                <h2 className="fw-bold text-dark">¡Confirmado!</h2>
+                <p className="text-muted px-4">
+                  Gracias <strong>{nombre}</strong>, tu lugar está reservado
+                  para el <strong>{fecha}</strong> a las{" "}
+                  <strong>{horaSeleccionada}</strong>.
                 </p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="btn btn-outline-primary rounded-pill px-4"
-                >
-                  Volver al inicio
-                </button>
+                <div className="mt-4 pt-3 border-top mx-4">
+                  <p className="small text-muted mb-3">
+                    Se enviará un recordatorio por WhatsApp
+                  </p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="btn btn-dark rounded-pill px-5 py-2"
+                  >
+                    Volver al inicio
+                  </button>
+                </div>
               </div>
             )}
           </div>

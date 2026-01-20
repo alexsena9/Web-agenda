@@ -1,141 +1,92 @@
 import React from "react";
 import {
+  Scissors,
   LayoutDashboard,
   Calendar,
   Users,
   Settings,
-  Plus,
-  Scissors,
-  LogOut,
+  PlusCircle,
 } from "lucide-react";
 
 const Sidebar = ({ view, setView, onNewTurn }) => {
   const menuItems = [
     {
       id: "dashboard",
-      label: "Inicio",
-      icon: <LayoutDashboard size={20} strokeWidth={1.5} />,
+      label: "Panel Principal",
+      icon: <LayoutDashboard size={20} />,
     },
-    {
-      id: "agenda",
-      label: "Agenda",
-      icon: <Calendar size={20} strokeWidth={1.5} />,
-    },
-    {
-      id: "clientes",
-      label: "Clientes",
-      icon: <Users size={20} strokeWidth={1.5} />,
-    },
-    {
-      id: "config",
-      label: "Ajustes",
-      icon: <Settings size={20} strokeWidth={1.5} />,
-    },
+    { id: "agenda", label: "Agenda Diaria", icon: <Calendar size={20} /> },
+    { id: "clientes", label: "Directorio Clientes", icon: <Users size={20} /> },
+    { id: "config", label: "Configuración", icon: <Settings size={20} /> },
   ];
 
   return (
-    <>
-      <aside
-        className="d-none d-lg-flex flex-column bg-white border-end shadow-sm"
-        style={{ width: "260px", height: "100vh", position: "sticky", top: 0 }}
-      >
-        <div className="p-4 d-flex align-items-center gap-3">
-          <div className="bg-primary p-2 rounded-3 shadow-primary">
-            <Scissors className="text-white" size={24} />
-          </div>
-          <h5
-            className="fw-bold mb-0 text-dark"
-            style={{
-              fontSize: "1.1rem",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              letterSpacing: "-0.5px",
-            }}
-          >
-            Agenda Barbería
-          </h5>
+    <aside
+      className="bg-white border-end d-flex flex-column"
+      style={{ width: "280px", minHeight: "100vh", position: "sticky", top: 0 }}
+    >
+      <div className="p-4 d-flex align-items-center gap-3">
+        <div
+          className="bg-primary p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center"
+          style={{ minWidth: "42px", height: "42px" }}
+        >
+          <Scissors className="text-white" size={24} />
         </div>
+        <h5
+          className="fw-bold mb-0 text-dark"
+          style={{
+            fontSize: "1.05rem",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            letterSpacing: "-0.3px",
+            paddingRight: "10px",
+          }}
+        >
+          AgendaProBarbería
+        </h5>
+      </div>
 
-        <div className="px-3 mt-4 flex-grow-1">
-          <button
-            onClick={onNewTurn}
-            className="btn btn-primary w-100 py-2 rounded-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm transition-all hover-scale"
-          >
-            <Plus size={18} /> <span>Nuevo Turno</span>
-          </button>
+      <div className="px-3 mb-4 text-start">
+        <button
+          onClick={onNewTurn}
+          className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 shadow-primary"
+        >
+          <PlusCircle size={18} />
+          <span className="fw-bold">Nuevo Turno</span>
+        </button>
+      </div>
 
-          <nav className="d-flex flex-column gap-2">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setView(item.id)}
-                className={`btn d-flex align-items-center gap-3 px-3 py-2 rounded-3 border-0 transition-all ${
-                  view === item.id
-                    ? "bg-primary bg-opacity-10 text-primary fw-bold"
-                    : "text-muted hover-bg-light"
-                }`}
-              >
-                {item.icon}
-                <span style={{ fontSize: "14px" }}>{item.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="p-4 border-top">
-          <div className="d-flex align-items-center gap-3 text-muted small">
-            <div className="bg-light p-2 rounded-circle">
-              <Users size={16} />
-            </div>
-            <span>Admin v1.0</span>
-          </div>
-        </div>
-      </aside>
-
-      <nav
-        className="d-lg-none fixed-bottom bg-white border-top d-flex justify-content-around align-items-center py-2 z-3"
-        style={{
-          backdropFilter: "blur(10px)",
-          backgroundColor: "rgba(255, 255, 255, 0.9)",
-        }}
-      >
+      <nav className="flex-grow-1 px-2">
         {menuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setView(item.id)}
-            className={`btn border-0 d-flex flex-column align-items-center gap-1 p-2 transition-all ${
-              view === item.id ? "text-primary" : "text-muted"
+            className={`w-100 border-0 d-flex align-items-center gap-3 px-3 py-2 mb-1 rounded-3 transition-all ${
+              view === item.id
+                ? "bg-primary bg-opacity-10 text-primary fw-bold"
+                : "bg-transparent text-secondary hover-bg-light"
             }`}
+            style={{ textAlign: "left" }}
           >
-            <div className={view === item.id ? "animate-bounce" : ""}>
-              {item.icon}
-            </div>
-            <span
-              style={{
-                fontSize: "10px",
-                fontWeight: view === item.id ? "bold" : "normal",
-              }}
-            >
-              {item.label}
-            </span>
+            {item.icon}
+            <span style={{ fontSize: "14px" }}>{item.label}</span>
           </button>
         ))}
-
-        <button
-          onClick={onNewTurn}
-          className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center"
-          style={{
-            width: "45px",
-            height: "45px",
-            marginTop: "-35px",
-            border: "4px solid white",
-          }}
-        >
-          <Plus size={24} />
-        </button>
       </nav>
-    </>
+
+      <div className="p-4 border-top">
+        <div className="d-flex align-items-center gap-2 text-muted">
+          <div
+            className="bg-success rounded-circle"
+            style={{ width: "8px", height: "8px" }}
+          ></div>
+          <span style={{ fontSize: "12px" }} className="fw-medium">
+            Servidor Activo
+          </span>
+        </div>
+      </div>
+    </aside>
   );
 };
 
