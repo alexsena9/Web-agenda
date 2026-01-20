@@ -18,8 +18,6 @@ import {
   doc,
   setDoc,
   updateDoc,
-  query,
-  orderBy,
 } from "firebase/firestore";
 
 function App() {
@@ -36,8 +34,7 @@ function App() {
   const [horarios, setHorarios] = useState({ inicio: 9, fin: 19 });
 
   useEffect(() => {
-    const q = collection(db, "turnos");
-    const unsubTurnos = onSnapshot(q, (snapshot) => {
+    const unsubTurnos = onSnapshot(collection(db, "turnos"), (snapshot) => {
       const turnosList = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -58,9 +55,8 @@ function App() {
         } else {
           const configInicial = {
             servicios: [
-              "Corte Clásico",
-              "Barba & Toalla Caliente",
-              "Corte + Barba",
+              { nombre: "Corte Clásico", precio: "1000" },
+              { nombre: "Barba", precio: "500" },
             ],
             horarios: { inicio: 9, fin: 19 },
           };
@@ -101,7 +97,7 @@ function App() {
       if (nuevoTurno.estado !== "Bloqueado") {
         const nombreBuscado = nuevoTurno.cliente.toLowerCase().trim();
         const clienteExistente = clientes.find(
-          (c) => c.nombre.toLowerCase().trim() === nombreBuscado,
+          (c) => c.nombre?.toLowerCase().trim() === nombreBuscado,
         );
 
         if (clienteExistente) {
@@ -131,79 +127,7 @@ function App() {
     }
   };
 
-  if (ruta === "/") {
-    return (
-      <div
-        className="vh-100 vw-100 d-flex align-items-center justify-content-center p-0 m-0 overflow-hidden"
-        style={{
-          backgroundColor: "#0f172a",
-          position: "fixed",
-          top: 0,
-          left: 0,
-        }}
-      >
-        <div
-          className="position-absolute w-100 h-100"
-          style={{
-            background:
-              "radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)",
-            zIndex: 0,
-          }}
-        ></div>
-        <div className="container position-relative z-1 px-4">
-          <div className="text-center mb-5 animate-fade-up">
-            <div className="bg-primary d-inline-flex p-4 rounded-circle mb-4 shadow-primary">
-              <Scissors size={48} className="text-white" />
-            </div>
-            <h1 className="text-white fw-bold display-3 mb-2 tracking-tighter">
-              Agenda Barbería
-            </h1>
-            <p className="text-muted fs-5">
-              La evolución de tu barbería comienza aquí
-            </p>
-          </div>
-          <div className="row g-4 justify-content-center">
-            <div className="col-12 col-md-5 col-lg-4">
-              <div
-                onClick={() => navegar("/reservar")}
-                className="card h-100 bg-white bg-opacity-5 border border-white border-opacity-10 p-4 p-lg-5 rounded-4 cursor-pointer portal-card transition-all"
-              >
-                <div className="bg-success bg-opacity-20 text-success p-3 rounded-3 d-inline-block mb-4">
-                  <User size={32} />
-                </div>
-                <h3 className="text-white fw-bold mb-3">Reservar Turno</h3>
-                <p className="text-secondary mb-4">
-                  Agenda tu cita en menos de 1 minuto sin registros previos.
-                </p>
-                <div className="text-success fw-bold d-flex align-items-center gap-2">
-                  Empezar ahora <ArrowRight size={18} />
-                </div>
-              </div>
-            </div>
-            <div className="col-12 col-md-5 col-lg-4">
-              <div
-                onClick={() => navegar("/admin")}
-                className="card h-100 bg-white bg-opacity-5 border border-white border-opacity-10 p-4 p-lg-5 rounded-4 cursor-pointer portal-card transition-all"
-              >
-                <div className="bg-primary bg-opacity-20 text-primary p-3 rounded-3 d-inline-block mb-4">
-                  <Settings size={32} />
-                </div>
-                <h3 className="text-white fw-bold mb-3">Panel Barbero</h3>
-                <p className="text-secondary mb-4">
-                  Gestiona tus horarios, clientes y estadísticas de negocio.
-                </p>
-                <div className="text-primary fw-bold d-flex align-items-center gap-2">
-                  Acceder al panel <ArrowRight size={18} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (ruta === "/reservar") {
+  if (ruta === "/reservar")
     return (
       <VistaPublica
         turnos={turnos}
@@ -212,7 +136,6 @@ function App() {
         horarios={horarios}
       />
     );
-  }
 
   if (ruta === "/admin" && !isAuthenticated) {
     return (
@@ -247,6 +170,8 @@ function App() {
             setServicios={(nuevos) => updateConfig({ servicios: nuevos })}
             horarios={horarios}
             setHorarios={(nuevos) => updateConfig({ horarios: nuevos })}
+            clientes={clientes}
+            turnos={turnos}
             onLogout={() => {
               setIsAuthenticated(false);
               sessionStorage.removeItem("isAuth");
@@ -258,6 +183,31 @@ function App() {
         return <Dashboard turnos={turnos} setView={setView} />;
     }
   };
+
+  if (ruta === "/") {
+    return (
+      <div className="vh-100 vw-100 d-flex align-items-center justify-content-center bg-dark text-white">
+        <div className="text-center">
+          <Scissors size={64} className="mb-4 text-primary" />
+          <h1 className="display-4 fw-bold">Barbería App</h1>
+          <div className="mt-4 d-flex gap-3 justify-content-center">
+            <button
+              onClick={() => navegar("/reservar")}
+              className="btn btn-primary btn-lg px-4"
+            >
+              Reservar Turno
+            </button>
+            <button
+              onClick={() => navegar("/admin")}
+              className="btn btn-outline-light btn-lg px-4"
+            >
+              Panel Admin
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="d-flex flex-column flex-lg-row min-vh-100 bg-light">

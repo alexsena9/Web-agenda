@@ -43,7 +43,7 @@ const Sidebar = ({ view, setView, onNewTurn }) => {
             paddingRight: "10px",
           }}
         >
-          AgendaProBarbería
+          Agenda Barbería
         </h5>
       </div>
 

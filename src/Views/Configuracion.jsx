@@ -1,27 +1,25 @@
 import React, { useState } from "react";
 import {
-  Settings,
   Plus,
   Trash2,
   LogOut,
   Clock,
   Scissors,
-  Database,
   CheckCircle,
   Search,
   UserMinus,
-  DollarSign,
 } from "lucide-react";
 import { db } from "../firebase";
 import { doc, deleteDoc } from "firebase/firestore";
 
 const Configuracion = ({
-  servicios,
+  servicios = [],
   setServicios,
   horarios,
   setHorarios,
   onLogout,
-  clientes,
+  clientes = [],
+  turnos = [],
 }) => {
   const [nuevoServicio, setNuevoServicio] = useState("");
   const [precioServicio, setPrecioServicio] = useState("");
@@ -33,10 +31,7 @@ const Configuracion = ({
     if (nuevoServicio.trim() && precioServicio.trim()) {
       setServicios([
         ...servicios,
-        {
-          nombre: nuevoServicio.trim(),
-          precio: precioServicio.trim(),
-        },
+        { nombre: nuevoServicio.trim(), precio: precioServicio.trim() },
       ]);
       setNuevoServicio("");
       setPrecioServicio("");
@@ -49,11 +44,10 @@ const Configuracion = ({
     triggerAlert();
   };
 
-  const handleEliminarClientePorNombre = async (id) => {
-    if (window.confirm("¿Eliminar este cliente de la base de datos?")) {
+  const handleEliminarCliente = async (id) => {
+    if (window.confirm("¿Eliminar este cliente de forma permanente?")) {
       try {
         await deleteDoc(doc(db, "clientes", id));
-        setBusquedaCliente("");
         triggerAlert();
       } catch (e) {
         console.error(e);
@@ -68,12 +62,9 @@ const Configuracion = ({
 
   const sugerenciasClientes =
     busquedaCliente.length > 1 && Array.isArray(clientes)
-      ? clientes.filter((c) => {
-          return (
-            c?.nombre &&
-            c.nombre.toLowerCase().includes(busquedaCliente.toLowerCase())
-          );
-        })
+      ? clientes.filter((c) =>
+          c?.nombre?.toLowerCase().includes(busquedaCliente.toLowerCase()),
+        )
       : [];
 
   return (
@@ -82,7 +73,7 @@ const Configuracion = ({
         <div>
           <h2 className="fw-bold text-dark mb-1">Configuración</h2>
           <p className="text-muted mb-0">
-            Gestión global de servicios, precios y horarios
+            Gestión de servicios y base de datos
           </p>
         </div>
         <button
@@ -95,41 +86,35 @@ const Configuracion = ({
 
       {showSavedAlert && (
         <div className="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2 py-2">
-          <CheckCircle size={18} /> Sincronizado en la nube
+          <CheckCircle size={18} /> Cambios guardados en la nube
         </div>
       )}
 
       <div className="row g-4">
         <div className="col-12 col-lg-7">
           <div className="card border-0 shadow-sm rounded-4 p-4 mb-4">
-            <div className="d-flex align-items-center gap-2 mb-4">
-              <Scissors size={20} className="text-primary" />
-              <h5 className="fw-bold mb-0">Catálogo de Servicios</h5>
-            </div>
+            <h5 className="fw-bold mb-4 d-flex align-items-center gap-2">
+              <Scissors size={20} className="text-primary" /> Servicios
+            </h5>
             <form onSubmit={handleAddServicio} className="mb-4">
               <div className="row g-2">
                 <div className="col-7">
                   <input
                     type="text"
                     className="form-control bg-light border-0"
-                    placeholder="Nombre del servicio..."
+                    placeholder="Nombre..."
                     value={nuevoServicio}
                     onChange={(e) => setNuevoServicio(e.target.value)}
                   />
                 </div>
                 <div className="col-3">
-                  <div className="input-group">
-                    <span className="input-group-text bg-light border-0 text-muted">
-                      $
-                    </span>
-                    <input
-                      type="number"
-                      className="form-control bg-light border-0 ps-0"
-                      placeholder="0"
-                      value={precioServicio}
-                      onChange={(e) => setPrecioServicio(e.target.value)}
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    className="form-control bg-light border-0"
+                    placeholder="$"
+                    value={precioServicio}
+                    onChange={(e) => setPrecioServicio(e.target.value)}
+                  />
                 </div>
                 <div className="col-2">
                   <button className="btn btn-primary w-100" type="submit">
@@ -164,10 +149,10 @@ const Configuracion = ({
           </div>
 
           <div className="card border-0 shadow-sm rounded-4 p-4">
-            <div className="d-flex align-items-center gap-2 mb-4">
-              <UserMinus size={20} className="text-danger" />
-              <h5 className="fw-bold mb-0">Gestión de Clientes</h5>
-            </div>
+            <h5 className="fw-bold mb-4 d-flex align-items-center gap-2">
+              <UserMinus size={20} className="text-danger" /> Clientes
+              registrados
+            </h5>
             <div className="position-relative mb-3">
               <Search
                 className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
@@ -176,43 +161,38 @@ const Configuracion = ({
               <input
                 type="text"
                 className="form-control bg-light border-0 ps-5"
-                placeholder="Buscar cliente para eliminar..."
+                placeholder="Buscar por nombre..."
                 value={busquedaCliente}
                 onChange={(e) => setBusquedaCliente(e.target.value)}
               />
             </div>
-            {sugerenciasClientes.length > 0
-              ? sugerenciasClientes.map((c) => (
-                  <div
-                    key={c.id}
-                    className="d-flex justify-content-between align-items-center p-2 border-bottom"
-                  >
-                    <span className="small fw-bold">{c.nombre}</span>
-                    <button
-                      onClick={() => handleEliminarClientePorNombre(c.id)}
-                      className="btn btn-sm btn-outline-danger border-0"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))
-              : busquedaCliente.length > 1 && (
-                  <div className="text-center p-3 text-muted small">
-                    No se encontraron resultados
-                  </div>
-                )}
+            {sugerenciasClientes.map((c) => (
+              <div
+                key={c.id}
+                className="d-flex justify-content-between align-items-center p-2 border-bottom"
+              >
+                <span className="small fw-bold">{c.nombre}</span>
+                <button
+                  onClick={() => handleEliminarCliente(c.id)}
+                  className="btn btn-sm btn-outline-danger border-0"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="col-12 col-lg-5">
-          <div className="card border-0 shadow-sm rounded-4 p-4 mb-4">
-            <div className="d-flex align-items-center gap-2 mb-4">
-              <Clock size={20} className="text-warning" />
-              <h5 className="fw-bold mb-0">Horarios de Atención</h5>
-            </div>
+          <div className="card border-0 shadow-sm rounded-4 p-4">
+            <h5 className="fw-bold mb-4 d-flex align-items-center gap-2">
+              <Clock size={20} className="text-warning" /> Horarios
+            </h5>
             <div className="row g-3">
               <div className="col-6">
-                <label className="small fw-bold text-muted">APERTURA</label>
+                <label className="small fw-bold text-muted text-uppercase">
+                  Inicio
+                </label>
                 <select
                   className="form-select bg-light border-0"
                   value={horarios.inicio}
@@ -225,13 +205,15 @@ const Configuracion = ({
                 >
                   {[...Array(24)].map((_, i) => (
                     <option key={i} value={i}>
-                      {i.toString().padStart(2, "0")}:00
+                      {i}:00
                     </option>
                   ))}
                 </select>
               </div>
               <div className="col-6">
-                <label className="small fw-bold text-muted">CIERRE</label>
+                <label className="small fw-bold text-muted text-uppercase">
+                  Fin
+                </label>
                 <select
                   className="form-select bg-light border-0"
                   value={horarios.fin}
@@ -241,7 +223,7 @@ const Configuracion = ({
                 >
                   {[...Array(24)].map((_, i) => (
                     <option key={i} value={i}>
-                      {i.toString().padStart(2, "0")}:00
+                      {i}:00
                     </option>
                   ))}
                 </select>
