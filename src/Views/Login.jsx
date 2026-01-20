@@ -38,7 +38,7 @@ const Login = ({ onLogin }) => {
           <div className="bg-primary d-inline-block p-3 rounded-circle mb-3 shadow-primary">
             <Scissors size={32} className="text-white" />
           </div>
-          <h3 className="fw-bold mb-1">AgendaPro</h3>
+          <h3 className="fw-bold mb-1">Agenda Barbería</h3>
           <p className="text-muted small">Panel de Gestión Profesional</p>
         </div>
 

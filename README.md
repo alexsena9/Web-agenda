@@ -1,10 +1,10 @@
-# 💈 AgendaPro - Web Agenda Management System
+# 💈 Agenda Barbería - Web Agenda Management System
 
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
 [![Lucide](https://img.shields.io/badge/Lucide_Icons-FFEE82?style=for-the-badge&logo=lucide&logoColor=black)](https://lucide.dev/)
 
-AgendaPro es una solución integral de gestión para barberías y centros de estética. Diseñada con un enfoque "Mobile-First", permite a los profesionales gestionar turnos, clientes y servicios de manera eficiente desde cualquier dispositivo, eliminando la necesidad de agendas de papel.
+Agenda Barbería es una solución integral de gestión para barberías y centros de estética. Diseñada con un enfoque "Mobile-First", permite a los profesionales gestionar turnos, clientes y servicios de manera eficiente desde cualquier dispositivo, eliminando la necesidad de agendas de papel.
 
 ---
 
