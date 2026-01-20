@@ -96,7 +96,7 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
               4.9
             </span>
             <span className="d-flex align-items-center gap-1">
-              <MapPin size={14} /> Centro, Montevideo
+              <MapPin size={14} /> Ciudad de Paysandú
             </span>
           </div>
         </div>
