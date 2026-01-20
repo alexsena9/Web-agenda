@@ -85,7 +85,7 @@ const VistaPublica = ({ turnos, onAddTurno, servicios, horarios }) => {
           <div className="bg-primary d-inline-flex p-3 rounded-circle mb-3 shadow-primary">
             <Scissors size={28} className="text-white" />
           </div>
-          <h1 className="fw-bold display-6 mb-1 text-white">Barbería Elite</h1>
+          <h1 className="fw-bold display-6 mb-1 text-white">Agenda Barbería</h1>
           <div className="d-flex justify-content-center align-items-center gap-3 small opacity-75 text-white">
             <span className="d-flex align-items-center gap-1">
               <Star
