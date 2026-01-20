@@ -47,7 +47,7 @@ const Sidebar = ({ view, setView, onNewTurn }) => {
             className="fw-bold mb-0 tracking-tight"
             style={{ color: "#1e293b" }}
           >
-            AgendaPro
+            AgendaProBarbería
           </h5>
         </div>
 
