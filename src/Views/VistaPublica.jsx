@@ -53,15 +53,16 @@ const VistaPublica = ({
     return list;
   };
 
-  const handleFinalizar = () => {
-    if (nombre && telefono) {
+  const handleFinalizar = (e) => {
+    if (e) e.preventDefault();
+    if (nombre.trim() && telefono.trim() && servicio && fecha && hora) {
       onAddTurno({
-        cliente: nombre,
-        telefono,
+        cliente: nombre.trim(),
+        telefono: telefono.trim(),
         servicio: servicio.nombre,
         precio: servicio.precio,
-        fecha,
-        hora,
+        fecha: fecha,
+        hora: hora,
         estado: "Pendiente",
       });
       setPaso(4);
@@ -107,6 +108,7 @@ const VistaPublica = ({
               {servicios.map((s, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => {
                     setServicio(s);
                     setPaso(2);
@@ -134,10 +136,11 @@ const VistaPublica = ({
         {paso === 2 && (
           <div className="animate-fade-in">
             <button
+              type="button"
               onClick={() => setPaso(1)}
               className="btn btn-link text-white-50 p-0 mb-4 text-decoration-none d-flex align-items-center gap-2"
             >
-              <ChevronLeft size={20} /> Volver
+              <ChevronLeft size={20} /> Cambiar servicio
             </button>
 
             <div
@@ -189,6 +192,7 @@ const VistaPublica = ({
                   {getHorasDisponibles().map((h) => (
                     <div key={h.hora} className="col-4">
                       <button
+                        type="button"
                         disabled={!h.disponible}
                         onClick={() => setHora(h.hora)}
                         className={`btn w-100 py-3 rounded-4 fw-bold transition-all border-0 ${
@@ -222,6 +226,7 @@ const VistaPublica = ({
                 </div>
                 {hora && (
                   <button
+                    type="button"
                     onClick={() => setPaso(3)}
                     className="btn w-100 py-3 rounded-4 fw-black mt-4 shadow-lg border-0 text-white"
                     style={{ background: "#3b82f6" }}
@@ -237,10 +242,11 @@ const VistaPublica = ({
         {paso === 3 && (
           <div className="animate-fade-in">
             <button
+              type="button"
               onClick={() => setPaso(2)}
               className="btn btn-link text-white-50 p-0 mb-4 text-decoration-none d-flex align-items-center gap-2"
             >
-              <ChevronLeft size={20} /> Volver
+              <ChevronLeft size={20} /> Cambiar fecha u hora
             </button>
 
             <div
@@ -254,8 +260,8 @@ const VistaPublica = ({
                 <span className="text-white-50 small text-uppercase">
                   Servicio
                 </span>
-                <span className="fw-bold" style={{ color: "#ffffff" }}>
-                  {servicio.nombre}
+                <span className="fw-bold" style={{ color: "#3b82f6" }}>
+                  {servicio?.nombre}
                 </span>
               </div>
               <div className="d-flex justify-content-between">
@@ -268,45 +274,49 @@ const VistaPublica = ({
               </div>
             </div>
 
-            <div className="d-flex flex-column gap-3 mb-4">
-              <div className="position-relative">
-                <User
-                  size={18}
-                  className="position-absolute top-50 start-0 translate-middle-y ms-3"
-                  style={{ color: "#3b82f6" }}
-                />
-                <input
-                  type="text"
-                  className="form-control bg-white bg-opacity-5 border border-white border-opacity-10 text-black py-3 ps-5 rounded-4 shadow-none"
-                  placeholder="Tu nombre completo"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                />
+            <form onSubmit={handleFinalizar}>
+              <div className="d-flex flex-column gap-3 mb-4">
+                <div className="position-relative">
+                  <User
+                    size={18}
+                    className="position-absolute top-50 start-0 translate-middle-y ms-3"
+                    style={{ color: "#3b82f6" }}
+                  />
+                  <input
+                    type="text"
+                    required
+                    className="form-control bg-white bg-opacity-5 border border-white border-opacity-10 text-white py-3 ps-5 rounded-4 shadow-none"
+                    placeholder="Tu nombre completo"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                  />
+                </div>
+                <div className="position-relative">
+                  <Phone
+                    size={18}
+                    className="position-absolute top-50 start-0 translate-middle-y ms-3"
+                    style={{ color: "#3b82f6" }}
+                  />
+                  <input
+                    type="tel"
+                    required
+                    className="form-control bg-white bg-opacity-5 border border-white border-opacity-10 text-white py-3 ps-5 rounded-4 shadow-none"
+                    placeholder="Tu WhatsApp"
+                    value={telefono}
+                    onChange={(e) => setTelefono(e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="position-relative">
-                <Phone
-                  size={18}
-                  className="position-absolute top-50 start-0 translate-middle-y ms-3"
-                  style={{ color: "#3b82f6" }}
-                />
-                <input
-                  type="text"
-                  className="form-control bg-white bg-opacity-5 border border-white border-opacity-10 text-black py-3 ps-5 rounded-4 shadow-none"
-                  placeholder="Tu WhatsApp"
-                  value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                />
-              </div>
-            </div>
 
-            <button
-              onClick={handleFinalizar}
-              disabled={!nombre || !telefono}
-              className="btn w-100 py-3 rounded-4 fw-black shadow-lg border-0 text-white"
-              style={{ background: "#3b82f6" }}
-            >
-              CONFIRMAR TURNO AHORA
-            </button>
+              <button
+                type="submit"
+                disabled={!nombre || !telefono}
+                className="btn w-100 py-3 rounded-4 fw-black shadow-lg border-0 text-white"
+                style={{ background: "#3b82f6" }}
+              >
+                CONFIRMAR TURNO AHORA
+              </button>
+            </form>
           </div>
         )}
 
@@ -340,6 +350,7 @@ const VistaPublica = ({
             </div>
 
             <button
+              type="button"
               onClick={() => (window.location.href = "/")}
               className="btn btn-outline-light px-5 py-3 rounded-4 fw-bold border-opacity-25"
             >
@@ -356,6 +367,8 @@ const VistaPublica = ({
         .tracking-widest { letter-spacing: 0.3em; }
         .btn:hover { transform: scale(1.02); opacity: 0.9; }
         .btn:disabled { opacity: 0.5; transform: none; }
+        input::placeholder { color: rgba(255,255,255,0.4) !important; }
+        input:focus { background-color: rgba(255,255,255,0.1) !important; color: white !important; }
       `}</style>
     </div>
   );
