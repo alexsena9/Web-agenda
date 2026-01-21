@@ -22,6 +22,7 @@ import {
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
+import { Scissors, UserCog, CalendarDays } from "lucide-react";
 
 function App() {
   const [ruta, setRuta] = useState(window.location.pathname);
@@ -103,7 +104,7 @@ function App() {
     }
   };
 
-  const renderView = () => {
+  const renderAdminView = () => {
     switch (view) {
       case "dashboard":
         return (
@@ -153,6 +154,61 @@ function App() {
     }
   };
 
+  if (ruta === "/") {
+    return (
+      <div
+        className="min-vh-100 vw-100 d-flex align-items-center justify-content-center bg-dark text-white p-4"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at top right, #3b82f615, transparent), url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2070')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundBlendMode: "overlay",
+        }}
+      >
+        <div
+          className="card border-0 p-5 rounded-5 shadow-lg text-center"
+          style={{
+            backgroundColor: "rgba(15, 23, 42, 0.8)",
+            backdropFilter: "blur(12px)",
+            maxWidth: "500px",
+            width: "100%",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
+          <div className="bg-primary d-inline-block p-3 rounded-circle mb-4 shadow-primary">
+            <Scissors size={40} className="text-white" />
+          </div>
+          <h1 className="display-5 fw-bold mb-2">Barbería Premium</h1>
+          <p className="text-muted mb-5">
+            Gestión profesional de turnos y clientes
+          </p>
+
+          <div className="d-grid gap-3">
+            <button
+              onClick={() => navegar("/reservar")}
+              className="btn btn-primary btn-lg py-3 rounded-4 fw-bold d-flex align-items-center justify-content-center gap-2 transition-all hover-scale"
+            >
+              <CalendarDays size={22} /> RESERVAR TURNO
+            </button>
+            <button
+              onClick={() => navegar("/login")}
+              className="btn btn-outline-light btn-lg py-3 rounded-4 fw-bold d-flex align-items-center justify-content-center gap-2 transition-all"
+            >
+              <UserCog size={22} /> PANEL ADMINISTRATIVO
+            </button>
+          </div>
+
+          <div className="mt-5 pt-4 border-top border-secondary border-opacity-25">
+            <small className="text-muted opacity-50">
+              © 2026 Barbería Premium - Todos los derechos reservados
+            </small>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (ruta === "/reservar") {
     return (
       <VistaPublica
@@ -165,7 +221,11 @@ function App() {
     );
   }
 
-  if (!isAuthenticated)
+  if (ruta === "/login") {
+    if (isAuthenticated) {
+      navegar("/admin");
+      return null;
+    }
     return (
       <Login
         onLogin={() => {
@@ -175,50 +235,35 @@ function App() {
         }}
       />
     );
+  }
 
-  if (ruta === "/") {
+  if (ruta === "/admin") {
+    if (!isAuthenticated) {
+      navegar("/login");
+      return null;
+    }
     return (
-      <div className="min-vh-100 vw-100 d-flex align-items-center justify-content-center bg-dark text-white text-center">
-        <div>
-          <h1 className="display-3 fw-bold mb-5">Barbería Premium</h1>
-          <div className="d-flex flex-column flex-md-row gap-3">
-            <button
-              onClick={() => navegar("/reservar")}
-              className="btn btn-primary btn-lg px-5 py-4 rounded-5 fw-bold"
-            >
-              PEDIR TURNO
-            </button>
-            <button
-              onClick={() => navegar("/admin")}
-              className="btn btn-outline-light btn-lg px-5 py-4 rounded-5 fw-bold"
-            >
-              ADMINISTRACIÓN
-            </button>
-          </div>
-        </div>
+      <div className="d-flex flex-column flex-lg-row min-vh-100 bg-light">
+        <Sidebar
+          view={view}
+          setView={setView}
+          onNewTurn={() => setIsModalOpen(true)}
+        />
+        <main className="flex-grow-1 p-3 p-md-4">{renderAdminView()}</main>
+        <NuevoTurnoModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          servicios={servicios}
+          onAddTurno={handleAddTurno}
+          turnos={turnos}
+          horarios={horarios}
+          bloqueos={bloqueos}
+        />
       </div>
     );
   }
 
-  return (
-    <div className="d-flex flex-column flex-lg-row min-vh-100 bg-light">
-      <Sidebar
-        view={view}
-        setView={setView}
-        onNewTurn={() => setIsModalOpen(true)}
-      />
-      <main className="flex-grow-1 p-3 p-md-4">{renderView()}</main>
-      <NuevoTurnoModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        servicios={servicios}
-        onAddTurno={handleAddTurno}
-        turnos={turnos}
-        horarios={horarios}
-        bloqueos={bloqueos}
-      />
-    </div>
-  );
+  return null;
 }
 
 export default App;
