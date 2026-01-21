@@ -1,85 +1,130 @@
-import React from "react";
+import React, { useState } from "react";
 import {
+  Check,
   Trash2,
+  Calendar,
   Clock,
   User,
+  Phone,
+  Scissors,
   MessageCircle,
-  CheckCircle,
-  Calendar,
 } from "lucide-react";
 
 const Agenda = ({ turnos, onCompletar, onEliminar }) => {
-  const hoy = new Date().toISOString().split("T")[0];
+  const [filtroFecha, setFiltroFecha] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+
   const turnosHoy = turnos
-    .filter((t) => t.fecha === hoy)
+    .filter((t) => t.fecha === filtroFecha)
     .sort((a, b) => a.hora.localeCompare(b.hora));
 
-  const enviarWpp = (tel, nombre) => {
-    const msg = `Hola ${nombre}, te hablamos de la Barbería para confirmar tu turno.`;
-    window.open(
-      `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,
-      "_blank",
-    );
+  const whatsappLink = (t) => {
+    const msg = `Hola ${t.cliente}, confirmamos tu turno de ${t.servicio} para el día ${t.fecha} a las ${t.hora} hs.`;
+    return `https://wa.me/${t.telefono.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`;
   };
 
   return (
     <div className="animate-fade-in">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold mb-0">Agenda Diaria</h2>
-        <div className="badge bg-white text-dark border p-2 px-3 rounded-pill shadow-sm">
-          <Calendar size={16} className="me-2 text-primary" /> {hoy}
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+          <h2 className="fw-bold mb-1 text-dark">Agenda Diaria</h2>
+          <p className="text-muted mb-0">
+            Gestiona las citas del día seleccionado
+          </p>
+        </div>
+        <div className="bg-white p-2 rounded-4 shadow-sm d-flex align-items-center gap-2 border">
+          <Calendar size={20} className="text-primary ms-2" />
+          <input
+            type="date"
+            className="form-control border-0 shadow-none fw-bold text-dark"
+            value={filtroFecha}
+            onChange={(e) => setFiltroFecha(e.target.value)}
+          />
         </div>
       </div>
-      <div className="row g-3">
+
+      <div className="row g-4">
         {turnosHoy.length > 0 ? (
           turnosHoy.map((t) => (
-            <div key={t.id} className="col-12">
-              <div className="card border-0 shadow-sm rounded-4 p-3">
-                <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                  <div className="d-flex align-items-center gap-3">
-                    <div
-                      className="bg-primary text-white p-2 rounded-3 fw-bold shadow-sm d-flex flex-column align-items-center"
-                      style={{ minWidth: "65px" }}
-                    >
-                      <Clock size={16} />
-                      <span style={{ fontSize: "0.8rem" }}>{t.hora}</span>
-                    </div>
-                    <div>
-                      <h6 className="mb-0 fw-bold text-capitalize">
-                        {t.cliente}
-                      </h6>
-                      <small className="text-muted">
-                        {t.servicio} • ${t.precio}
-                      </small>
-                    </div>
-                  </div>
+            <div
+              key={t.id}
+              className="col-12 col-md-6 col-xxl-4 animate-fade-up"
+            >
+              <div className="card border-0 shadow-sm rounded-5 h-100 overflow-hidden">
+                <div className="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                  <span className="badge bg-primary bg-opacity-10 text-primary rounded-4 px-3 py-2 fw-bold d-flex align-items-center gap-2">
+                    <Clock size={16} /> {t.hora} HS
+                  </span>
                   <div className="d-flex gap-2">
                     <button
-                      onClick={() => enviarWpp(t.telefono, t.cliente)}
-                      className="btn btn-light text-success rounded-circle p-2 shadow-sm"
-                    >
-                      <MessageCircle size={20} />
-                    </button>
-                    <button
                       onClick={() => onCompletar(t)}
-                      className="btn btn-light text-primary rounded-circle p-2 shadow-sm"
+                      className="btn btn-success btn-sm rounded-circle p-2 border-0 shadow-sm"
+                      title="Marcar como realizado"
                     >
-                      <CheckCircle size={20} />
+                      <Check size={18} />
                     </button>
                     <button
                       onClick={() => onEliminar(t)}
-                      className="btn btn-light text-danger rounded-circle p-2 shadow-sm"
+                      className="btn btn-outline-danger btn-sm rounded-circle p-2 border-0"
+                      title="Eliminar cita"
                     >
-                      <Trash2 size={20} />
+                      <Trash2 size={18} />
                     </button>
+                  </div>
+                </div>
+                <div className="card-body px-4 pb-4 pt-3">
+                  <div className="mb-3 text-start">
+                    <h5 className="fw-bold text-dark text-capitalize mb-1">
+                      {t.cliente}
+                    </h5>
+                    <a
+                      href={whatsappLink(t)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-decoration-none d-flex align-items-center gap-2 text-success fw-bold small"
+                    >
+                      <MessageCircle size={16} /> {t.telefono}
+                    </a>
+                  </div>
+                  <div className="bg-light rounded-4 p-3 border d-flex justify-content-between align-items-center">
+                    <div className="text-start">
+                      <small
+                        className="text-muted d-block text-uppercase fw-bold"
+                        style={{ fontSize: "0.65rem" }}
+                      >
+                        Servicio
+                      </small>
+                      <span className="fw-bold text-dark">
+                        <Scissors size={14} className="me-1 text-primary" />{" "}
+                        {t.servicio}
+                      </span>
+                    </div>
+                    <div className="text-end">
+                      <small
+                        className="text-muted d-block text-uppercase fw-bold"
+                        style={{ fontSize: "0.65rem" }}
+                      >
+                        Precio
+                      </small>
+                      <span className="fw-bold text-dark">${t.precio}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div className="text-center py-5 bg-white rounded-5 border-2 border-dashed">
-            <p className="text-muted mb-0">No hay turnos para hoy</p>
+          <div className="col-12 text-center py-5">
+            <div className="bg-white rounded-5 p-5 shadow-sm d-inline-block w-100 border">
+              <Calendar size={60} className="text-muted opacity-25 mb-3" />
+              <h4 className="fw-bold text-muted">
+                No hay citas para esta fecha
+              </h4>
+              <p className="text-muted mb-0">
+                Los turnos agendados aparecerán aquí.
+              </p>
+            </div>
           </div>
         )}
       </div>
