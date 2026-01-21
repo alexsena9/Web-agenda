@@ -34,16 +34,9 @@ const Sidebar = ({ view, setView, onNewTurn }) => {
         </div>
         <h5
           className="fw-bold mb-0 text-dark"
-          style={{
-            fontSize: "1.05rem",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            letterSpacing: "-0.3px",
-            paddingRight: "10px",
-          }}
+          style={{ letterSpacing: "-0.5px" }}
         >
-          Agenda Barbería
+          Web Agenda
         </h5>
       </div>
 
@@ -81,9 +74,7 @@ const Sidebar = ({ view, setView, onNewTurn }) => {
             className="bg-success rounded-circle"
             style={{ width: "8px", height: "8px" }}
           ></div>
-          <span style={{ fontSize: "12px" }} className="fw-medium">
-            Servidor Activo
-          </span>
+          <small className="fw-bold">Sistema Activo</small>
         </div>
       </div>
     </aside>

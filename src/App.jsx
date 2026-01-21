@@ -19,6 +19,8 @@ import {
   deleteDoc,
   query,
   orderBy,
+  serverTimestamp,
+  setDoc,
 } from "firebase/firestore";
 
 function App() {
@@ -40,34 +42,24 @@ function App() {
     return () => window.removeEventListener("popstate", manejarCambioRuta);
   }, []);
 
-  const navegar = (path) => {
-    window.history.pushState({}, "", path);
-    setRuta(path);
-  };
-
   useEffect(() => {
-    const qTurnos = query(
-      collection(db, "turnos"),
-      orderBy("fecha", "asc"),
-      orderBy("hora", "asc"),
-    );
-    const unsubTurnos = onSnapshot(qTurnos, (snap) => {
-      setTurnos(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    const q = query(collection(db, "turnos"), orderBy("fecha", "asc"));
+    const unsubTurnos = onSnapshot(q, (snapshot) => {
+      setTurnos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 
-    const unsubClientes = onSnapshot(collection(db, "clientes"), (snap) => {
-      setClientes(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    const unsubClientes = onSnapshot(collection(db, "clientes"), (snapshot) => {
+      setClientes(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 
     const unsubConfig = onSnapshot(
-      doc(db, "configuracion", "negocio"),
-      (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          setServicios(data.servicios || []);
-          setHorarios(data.horarios || { inicio: "09:00", fin: "19:00" });
-          setBloqueos(data.bloqueos || []);
-        }
+      collection(db, "configuracion"),
+      (snapshot) => {
+        snapshot.docs.forEach((d) => {
+          if (d.id === "servicios") setServicios(d.data().lista || []);
+          if (d.id === "horarios") setHorarios(d.data());
+          if (d.id === "bloqueos") setBloqueos(d.data().lista || []);
+        });
       },
     );
 
@@ -78,43 +70,36 @@ function App() {
     };
   }, []);
 
+  const navegar = (path) => {
+    window.history.pushState({}, "", path);
+    setRuta(path);
+  };
+
   const handleAddTurno = async (nuevoTurno) => {
     try {
       await addDoc(collection(db, "turnos"), {
-        cliente: nuevoTurno.cliente.toLowerCase().trim(),
-        telefono: nuevoTurno.telefono.trim(),
-        servicio: nuevoTurno.servicio,
-        precio: nuevoTurno.precio || 0,
-        fecha: nuevoTurno.fecha,
-        hora: nuevoTurno.hora,
-        estado: "Pendiente",
-        fechaRegistro: new Date().toISOString(),
+        ...nuevoTurno,
+        createdAt: serverTimestamp(),
       });
-    } catch (error) {
-      console.error("Error al agregar turno:", error);
+
+      const existe = clientes.some((c) => c.telefono === nuevoTurno.telefono);
+      if (!existe) {
+        await addDoc(collection(db, "clientes"), {
+          nombre: nuevoTurno.cliente,
+          telefono: nuevoTurno.telefono,
+          fechaRegistro: new Date().toLocaleDateString("en-CA"),
+        });
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  const handleCompletarTurno = async (turno) => {
+  const syncConfig = async (id, data) => {
     try {
-      const existe = clientes.find((c) => c.telefono === turno.telefono);
-      if (!existe) {
-        await addDoc(collection(db, "clientes"), {
-          nombre: turno.cliente,
-          telefono: turno.telefono,
-          totalVisitas: 1,
-          ultimaVisita: turno.fecha,
-          fechaRegistro: new Date().toISOString(),
-        });
-      } else {
-        await updateDoc(doc(db, "clientes", existe.id), {
-          totalVisitas: (existe.totalVisitas || 0) + 1,
-          ultimaVisita: turno.fecha,
-        });
-      }
-      await deleteDoc(doc(db, "turnos", turno.id));
-    } catch (error) {
-      console.error("Error al completar turno:", error);
+      await setDoc(doc(db, "configuracion", id), data, { merge: true });
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -132,8 +117,10 @@ function App() {
         return (
           <Agenda
             turnos={turnos}
-            onCompletar={handleCompletarTurno}
-            onEliminar={(t) => deleteDoc(doc(db, "turnos", t.id))}
+            onCompletar={(id) =>
+              updateDoc(doc(db, "turnos", id), { estado: "Completado" })
+            }
+            onEliminar={(id) => deleteDoc(doc(db, "turnos", id))}
           />
         );
       case "clientes":
@@ -147,17 +134,11 @@ function App() {
         return (
           <Configuracion
             servicios={servicios}
-            setServicios={(n) =>
-              updateDoc(doc(db, "configuracion", "negocio"), { servicios: n })
-            }
+            setServicios={(lista) => syncConfig("servicios", { lista })}
             horarios={horarios}
-            setHorarios={(n) =>
-              updateDoc(doc(db, "configuracion", "negocio"), { horarios: n })
-            }
+            setHorarios={(h) => syncConfig("horarios", h)}
             bloqueos={bloqueos}
-            setBloqueos={(n) =>
-              updateDoc(doc(db, "configuracion", "negocio"), { bloqueos: n })
-            }
+            setBloqueos={(lista) => syncConfig("bloqueos", { lista })}
             clientes={clientes}
             onEliminarCliente={(id) => deleteDoc(doc(db, "clientes", id))}
             onLogout={() => {
@@ -168,17 +149,11 @@ function App() {
           />
         );
       default:
-        return (
-          <Dashboard
-            turnos={turnos}
-            setView={setView}
-            onNewTurn={() => setIsModalOpen(true)}
-          />
-        );
+        return <Dashboard turnos={turnos} setView={setView} />;
     }
   };
 
-  if (ruta === "/reservar")
+  if (ruta === "/reservar") {
     return (
       <VistaPublica
         turnos={turnos}
@@ -188,11 +163,13 @@ function App() {
         onAddTurno={handleAddTurno}
       />
     );
+  }
 
-  if (ruta === "/admin" && !isAuthenticated)
+  if (!isAuthenticated)
     return (
       <Login
         onLogin={() => {
+          sessionStorage.setItem("isAuth", "true");
           setIsAuthenticated(true);
           navegar("/admin");
         }}

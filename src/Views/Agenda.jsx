@@ -12,7 +12,7 @@ import {
 
 const Agenda = ({ turnos, onCompletar, onEliminar }) => {
   const [filtroFecha, setFiltroFecha] = useState(
-    new Date().toISOString().split("T")[0],
+    new Date().toLocaleDateString("en-CA"),
   );
 
   const turnosHoy = turnos
@@ -27,67 +27,83 @@ const Agenda = ({ turnos, onCompletar, onEliminar }) => {
   return (
     <div className="animate-fade-in">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <div>
+        <div className="text-start">
           <h2 className="fw-bold mb-1 text-dark">Agenda Diaria</h2>
           <p className="text-muted mb-0">
             Gestiona las citas del día seleccionado
           </p>
         </div>
-        <div className="bg-white p-2 rounded-4 shadow-sm d-flex align-items-center gap-2 border">
-          <Calendar size={20} className="text-primary ms-2" />
+        <div className="d-flex align-items-center gap-2 bg-white p-2 rounded-4 shadow-sm border">
+          <Calendar className="text-primary ms-2" size={20} />
           <input
             type="date"
-            className="form-control border-0 shadow-none fw-bold text-dark"
+            className="form-control border-0 fw-bold shadow-none"
             value={filtroFecha}
             onChange={(e) => setFiltroFecha(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="row g-4">
+      <div className="row g-3">
         {turnosHoy.length > 0 ? (
           turnosHoy.map((t) => (
-            <div
-              key={t.id}
-              className="col-12 col-md-6 col-xxl-4 animate-fade-up"
-            >
-              <div className="card border-0 shadow-sm rounded-5 h-100 overflow-hidden">
-                <div className="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                  <span className="badge bg-primary bg-opacity-10 text-primary rounded-4 px-3 py-2 fw-bold d-flex align-items-center gap-2">
-                    <Clock size={16} /> {t.hora} HS
-                  </span>
-                  <div className="d-flex gap-2">
-                    <button
-                      onClick={() => onCompletar(t)}
-                      className="btn btn-success btn-sm rounded-circle p-2 border-0 shadow-sm"
-                      title="Marcar como realizado"
-                    >
-                      <Check size={18} />
-                    </button>
-                    <button
-                      onClick={() => onEliminar(t)}
-                      className="btn btn-outline-danger btn-sm rounded-circle p-2 border-0"
-                      title="Eliminar cita"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+            <div key={t.id} className="col-12 col-xl-6">
+              <div
+                className={`card border-0 shadow-sm rounded-5 overflow-hidden ${t.estado === "Completado" ? "opacity-75" : ""}`}
+              >
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div className="d-flex align-items-center gap-3">
+                      <div
+                        className={`p-3 rounded-circle ${t.estado === "Completado" ? "bg-success text-white" : "bg-primary bg-opacity-10 text-primary"}`}
+                      >
+                        {t.estado === "Completado" ? (
+                          <Check size={24} />
+                        ) : (
+                          <Clock size={24} />
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="fw-bold mb-0 text-dark">{t.hora} hs</h4>
+                        <span
+                          className={`badge rounded-pill ${t.estado === "Completado" ? "bg-success bg-opacity-10 text-success" : "bg-warning bg-opacity-10 text-warning"}`}
+                        >
+                          {t.estado || "Pendiente"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="d-flex gap-2">
+                      {t.estado !== "Completado" && (
+                        <button
+                          onClick={() => onCompletar(t.id)}
+                          className="btn btn-light rounded-circle p-2 text-success shadow-sm"
+                        >
+                          <Check size={20} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => onEliminar(t.id)}
+                        className="btn btn-light rounded-circle p-2 text-danger shadow-sm"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="card-body px-4 pb-4 pt-3">
-                  <div className="mb-3 text-start">
-                    <h5 className="fw-bold text-dark text-capitalize mb-1">
-                      {t.cliente}
-                    </h5>
-                    <a
-                      href={whatsappLink(t)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-decoration-none d-flex align-items-center gap-2 text-success fw-bold small"
-                    >
-                      <MessageCircle size={16} /> {t.telefono}
-                    </a>
+
+                  <div className="bg-light rounded-4 p-3 mb-3 text-start">
+                    <div className="d-flex align-items-center gap-3 mb-2">
+                      <User size={18} className="text-muted" />
+                      <span className="fw-bold text-capitalize">
+                        {t.cliente}
+                      </span>
+                    </div>
+                    <div className="d-flex align-items-center gap-3">
+                      <Phone size={18} className="text-muted" />
+                      <span>{t.telefono}</span>
+                    </div>
                   </div>
-                  <div className="bg-light rounded-4 p-3 border d-flex justify-content-between align-items-center">
+
+                  <div className="d-flex justify-content-between align-items-center pt-2">
                     <div className="text-start">
                       <small
                         className="text-muted d-block text-uppercase fw-bold"
@@ -100,15 +116,14 @@ const Agenda = ({ turnos, onCompletar, onEliminar }) => {
                         {t.servicio}
                       </span>
                     </div>
-                    <div className="text-end">
-                      <small
-                        className="text-muted d-block text-uppercase fw-bold"
-                        style={{ fontSize: "0.65rem" }}
-                      >
-                        Precio
-                      </small>
-                      <span className="fw-bold text-dark">${t.precio}</span>
-                    </div>
+                    <a
+                      href={whatsappLink(t)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-success rounded-4 px-4 d-flex align-items-center gap-2"
+                    >
+                      <MessageCircle size={18} /> Confirmar
+                    </a>
                   </div>
                 </div>
               </div>
@@ -121,9 +136,6 @@ const Agenda = ({ turnos, onCompletar, onEliminar }) => {
               <h4 className="fw-bold text-muted">
                 No hay citas para esta fecha
               </h4>
-              <p className="text-muted mb-0">
-                Los turnos agendados aparecerán aquí.
-              </p>
             </div>
           </div>
         )}
@@ -131,4 +143,5 @@ const Agenda = ({ turnos, onCompletar, onEliminar }) => {
     </div>
   );
 };
+
 export default Agenda;
