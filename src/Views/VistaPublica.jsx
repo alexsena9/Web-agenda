@@ -36,18 +36,22 @@ const VistaPublica = ({
     for (let i = hInicio; i < hFin; i++) {
       const hStr = `${i.toString().padStart(2, "0")}:00`;
 
-      const ocupado = (turnos || []).some(
+      const estaOcupado = (turnos || []).some(
         (t) => t.fecha === fecha && t.hora === hStr && t.estado !== "Cancelado",
       );
 
-      const bloqueado = (bloqueos || []).some(
+      const estaBloqueadoManualmente = (bloqueos || []).some(
         (b) => b.tipo === "hora" && b.fecha === fecha && b.valor === hStr,
       );
 
       list.push({
         hora: hStr,
-        disponible: !ocupado && !bloqueado,
-        motivo: bloqueado ? "Bloqueado" : ocupado ? "Ocupado" : null,
+        disponible: !estaOcupado && !estaBloqueadoManualmente,
+        motivo: estaBloqueadoManualmente
+          ? "BLOQUEADO"
+          : estaOcupado
+            ? "OCUPADO"
+            : null,
       });
     }
     return list;
@@ -134,31 +138,33 @@ const VistaPublica = ({
                 <CalendarOff size={48} className="text-danger mb-3" />
                 <h6 className="fw-bold">No Disponible</h6>
                 <p className="small text-muted mb-0">
-                  Lo sentimos, no abrimos en esta fecha.
+                  Lo sentimos, la barbería permanecerá cerrada este día.
                 </p>
               </div>
             ) : (
               <div>
                 <label className="small fw-bold text-muted mb-2 text-uppercase">
-                  Horas Disponibles
+                  Horarios
                 </label>
                 <div className="row g-2">
                   {getHorasDisponibles().map((h) => (
-                    <div key={h.hora} className="col-4">
+                    <div key={h.hora} className="col-4 text-center">
                       <button
                         disabled={!h.disponible}
                         onClick={() => setHora(h.hora)}
                         className={`btn w-100 py-3 rounded-4 fw-bold transition-all ${
                           hora === h.hora
-                            ? "btn-primary border-primary"
+                            ? "btn-primary border-primary shadow-primary"
                             : h.disponible
-                              ? "btn-outline-light"
+                              ? "btn-outline-light border-opacity-25"
                               : "btn-dark text-muted opacity-25"
                         }`}
                       >
                         <div style={{ fontSize: "14px" }}>{h.hora}</div>
                         {!h.disponible && (
-                          <div style={{ fontSize: "8px" }}>NO DISPONIBLE</div>
+                          <div style={{ fontSize: "8px", marginTop: "2px" }}>
+                            {h.motivo}
+                          </div>
                         )}
                       </button>
                     </div>
@@ -167,7 +173,7 @@ const VistaPublica = ({
                 {hora && (
                   <button
                     onClick={() => setPaso(3)}
-                    className="btn btn-primary w-100 py-3 rounded-4 fw-bold mt-4"
+                    className="btn btn-primary w-100 py-3 rounded-4 fw-bold mt-4 shadow-sm"
                   >
                     Continuar con la reserva
                   </button>
@@ -198,24 +204,28 @@ const VistaPublica = ({
                 </span>
               </div>
             </div>
-            <input
-              type="text"
-              className="form-control bg-secondary border-0 text-white py-3 rounded-4 mb-3"
-              placeholder="Nombre Completo"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-            />
-            <input
-              type="tel"
-              className="form-control bg-secondary border-0 text-white py-3 rounded-4 mb-4"
-              placeholder="WhatsApp"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-            />
+            <div className="mb-3">
+              <input
+                type="text"
+                className="form-control bg-secondary border-0 text-white py-3 rounded-4 shadow-none"
+                placeholder="Nombre Completo"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+              />
+            </div>
+            <div className="mb-4">
+              <input
+                type="tel"
+                className="form-control bg-secondary border-0 text-white py-3 rounded-4 shadow-none"
+                placeholder="WhatsApp (Ej: 1122334455)"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+              />
+            </div>
             <button
               onClick={handleFinalizar}
               disabled={!nombre || !telefono}
-              className="btn btn-primary w-100 py-3 rounded-4 fw-bold"
+              className="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-primary"
             >
               CONFIRMAR TURNO
             </button>
@@ -224,16 +234,18 @@ const VistaPublica = ({
 
         {paso === 4 && (
           <div className="text-center py-5 animate-fade-in">
-            <CheckCircle size={80} className="text-success mb-4" />
+            <div className="mb-4 d-inline-block p-4 bg-success bg-opacity-10 rounded-circle">
+              <CheckCircle size={80} className="text-success" />
+            </div>
             <h2 className="fw-bold mb-2">¡Turno Confirmado!</h2>
             <p className="opacity-75">
               Te esperamos el {fecha} a las {hora} hs.
             </p>
             <button
               onClick={() => (window.location.href = "/")}
-              className="btn btn-outline-light px-5 py-3 rounded-4 fw-bold mt-4"
+              className="btn btn-outline-light px-5 py-3 rounded-4 fw-bold mt-4 border-opacity-25"
             >
-              Volver
+              Volver al inicio
             </button>
           </div>
         )}
