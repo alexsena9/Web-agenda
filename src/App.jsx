@@ -21,6 +21,8 @@ import {
   orderBy,
   serverTimestamp,
   setDoc,
+  getDocs,
+  where,
 } from "firebase/firestore";
 import { Scissors, UserCog, CalendarDays } from "lucide-react";
 
@@ -44,8 +46,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const q = query(collection(db, "turnos"), orderBy("fecha", "asc"));
-    const unsubTurnos = onSnapshot(q, (snapshot) => {
+    const qTurnos = query(collection(db, "turnos"), orderBy("fecha", "asc"));
+    const unsubTurnos = onSnapshot(qTurnos, (snapshot) => {
       setTurnos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 
@@ -83,16 +85,30 @@ function App() {
         createdAt: serverTimestamp(),
       });
 
-      const existe = clientes.some((c) => c.telefono === nuevoTurno.telefono);
-      if (!existe) {
+      const clientesRef = collection(db, "clientes");
+      const q = query(
+        clientesRef,
+        where("telefono", "==", nuevoTurno.telefono),
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
         await addDoc(collection(db, "clientes"), {
-          nombre: nuevoTurno.cliente,
+          nombre: nuevoTurno.cliente.toLowerCase(),
           telefono: nuevoTurno.telefono,
-          fechaRegistro: new Date().toLocaleDateString("en-CA"),
+          fechaRegistro: new Date().toISOString().split("T")[0],
+          totalVisitas: 1,
+        });
+      } else {
+        const clienteDoc = querySnapshot.docs[0];
+        const datosActuales = clienteDoc.data();
+        await updateDoc(doc(db, "clientes", clienteDoc.id), {
+          totalVisitas: (datosActuales.totalVisitas || 0) + 1,
+          ultimoTurno: nuevoTurno.fecha,
         });
       }
     } catch (e) {
-      console.error(e);
+      console.error("Error al registrar turno/cliente:", e);
     }
   };
 
@@ -104,7 +120,7 @@ function App() {
     }
   };
 
-  const renderAdminView = () => {
+  const renderAdminContent = () => {
     switch (view) {
       case "dashboard":
         return (
@@ -154,61 +170,6 @@ function App() {
     }
   };
 
-  if (ruta === "/") {
-    return (
-      <div
-        className="min-vh-100 vw-100 d-flex align-items-center justify-content-center bg-dark text-white p-4"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at top right, #3b82f615, transparent), url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2070')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundBlendMode: "overlay",
-        }}
-      >
-        <div
-          className="card border-0 p-5 rounded-5 shadow-lg text-center"
-          style={{
-            backgroundColor: "rgba(15, 23, 42, 0.8)",
-            backdropFilter: "blur(12px)",
-            maxWidth: "500px",
-            width: "100%",
-            border: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          <div className="bg-primary d-inline-block p-3 rounded-circle mb-4 shadow-primary">
-            <Scissors size={40} className="text-white" />
-          </div>
-          <h1 className="display-5 fw-bold mb-2">Barbería Premium</h1>
-          <p className="text-muted mb-5">
-            Gestión profesional de turnos y clientes
-          </p>
-
-          <div className="d-grid gap-3">
-            <button
-              onClick={() => navegar("/reservar")}
-              className="btn btn-primary btn-lg py-3 rounded-4 fw-bold d-flex align-items-center justify-content-center gap-2 transition-all hover-scale"
-            >
-              <CalendarDays size={22} /> RESERVAR TURNO
-            </button>
-            <button
-              onClick={() => navegar("/login")}
-              className="btn btn-outline-light btn-lg py-3 rounded-4 fw-bold d-flex align-items-center justify-content-center gap-2 transition-all"
-            >
-              <UserCog size={22} /> PANEL ADMINISTRATIVO
-            </button>
-          </div>
-
-          <div className="mt-5 pt-4 border-top border-secondary border-opacity-25">
-            <small className="text-muted opacity-50">
-              © 2026 Barbería Premium - Todos los derechos reservados
-            </small>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (ruta === "/reservar") {
     return (
       <VistaPublica
@@ -222,10 +183,6 @@ function App() {
   }
 
   if (ruta === "/login") {
-    if (isAuthenticated) {
-      navegar("/admin");
-      return null;
-    }
     return (
       <Login
         onLogin={() => {
@@ -249,7 +206,7 @@ function App() {
           setView={setView}
           onNewTurn={() => setIsModalOpen(true)}
         />
-        <main className="flex-grow-1 p-3 p-md-4">{renderAdminView()}</main>
+        <main className="flex-grow-1 p-3 p-md-4">{renderAdminContent()}</main>
         <NuevoTurnoModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
@@ -263,7 +220,44 @@ function App() {
     );
   }
 
-  return null;
+  return (
+    <div
+      className="min-vh-100 vw-100 d-flex align-items-center justify-content-center bg-dark text-white p-4 text-center"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div
+        className="portal-card p-5 rounded-5 shadow-lg"
+        style={{ maxWidth: "450px", width: "100%" }}
+      >
+        <div className="bg-primary d-inline-block p-3 rounded-circle mb-4">
+          <Scissors size={40} className="text-white" />
+        </div>
+        <h1 className="fw-bold mb-2">Barbería Premium</h1>
+        <p className="text-white  mb-5 small text-uppercase tracking-widest">
+          Reserva y Gestión
+        </p>
+        <div className="d-grid gap-3">
+          <button
+            onClick={() => navegar("/reservar")}
+            className="btn btn-primary btn-lg py-3 rounded-4 fw-bold d-flex align-items-center justify-content-center gap-2"
+          >
+            <CalendarDays size={22} /> RESERVAR TURNO
+          </button>
+          <button
+            onClick={() => navegar("/admin")}
+            className="btn btn-outline-light btn-lg py-3 rounded-4 fw-bold d-flex align-items-center justify-content-center gap-2"
+          >
+            <UserCog size={22} /> PANEL DE CONTROL
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default App;
